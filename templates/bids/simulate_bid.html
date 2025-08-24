@@ -1,0 +1,10 @@
+<!doctype html><html><body>
+<h2>Simular lance</h2>
+<form method="post">{% csrf_token %}
+  <label>Número do lote</label><br><input name="lot_number" /><br>
+  <label>Valor</label><br><input name="amount" /><br><br>
+  <button type="submit">Simular</button>
+</form>
+<p><a href="/app/">Voltar</a></p>
+{% for message in messages %}<p>{{ message }}</p>{% endfor %}
+</body></html>
