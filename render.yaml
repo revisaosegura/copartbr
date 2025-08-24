@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: copart-proxy
+    env: docker
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: UPSTREAM_HOST
+        value: www.copart.com.br
+      - key: WHATSAPP_URL
+        value: http://wa.me/5511958462009
