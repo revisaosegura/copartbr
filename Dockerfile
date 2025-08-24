@@ -1,13 +1,18 @@
-FROM nginx:1.25-alpine
+FROM python:3.12-slim
 
-RUN apk add --no-cache bash
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-COPY nginx/default.conf.template /etc/nginx/templates/default.conf.template
+WORKDIR /app
 
-ENV PORT=8080 \
-    UPSTREAM_HOST=www.copart.com.br \
-    WHATSAPP_URL=http://wa.me/5511958462009
+COPY requirements.txt ./
+RUN pip install --no-cache-dir -r requirements.txt
 
-EXPOSE 8080
+COPY . /app
 
-CMD ["nginx", "-g", "daemon off;"]
+# Porta para Render
+ENV PORT=8000
+EXPOSE 8000
+
+# Cria superusuário se não existir e roda o Gunicorn
+CMD bash entrypoint.sh
