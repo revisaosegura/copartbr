@@ -68,5 +68,8 @@ STATICFILES_DIRS = [BASE_DIR / 'static'] if (BASE_DIR / 'static').exists() else 
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = '/app/'
-LOGOUT_REDIRECT_URL = '/app/login/'
+# Configure Django auth URL settings so that unauthenticated users
+# are redirected to the correct login page.
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
