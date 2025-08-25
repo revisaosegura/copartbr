@@ -46,7 +46,8 @@ copart_full_mirror_project/
    - Serviço **Django**: apontar para `django_app/` (env Docker).
    - Serviço **Proxy**: apontar para `proxy/` (env Docker).
 3. Após o deploy do Django, copie a **URL pública** do Django (ex.: `https://sua-app.onrender.com`).
-4. Nas **variáveis do Proxy**, defina `DJANGO_UPSTREAM` com a URL pública do Django.
+4. Nas **variáveis do Proxy**, defina `DJANGO_UPSTREAM` com a URL pública do Django
+   (padrão local: `localhost:8000`).
 5. Adicione seu domínio customizado ao **Proxy** (esse será o front principal).
 6. Acesse `seu-dominio/admin` para entrar no **Django Admin** (credenciais configuradas via env).
 
@@ -56,6 +57,7 @@ copart_full_mirror_project/
   - `UPSTREAM_HOST=www.copart.com.br`
   - `WHATSAPP_URL=http://wa.me/5511958462009`
   - `DJANGO_UPSTREAM` = URL do serviço Django (ex.: `https://sua-app.onrender.com`)
+    - padrão local: `localhost:8000`
 - **Django**:
   - `PORT` (Render define automaticamente)
   - `DJANGO_SECRET_KEY` (defina um valor seguro)
