@@ -45,10 +45,12 @@ copart_full_mirror_project/
 2. No Render, crie **dois Web Services** a partir das subpastas:
    - Serviço **Django**: apontar para `django_app/` (env Docker).
    - Serviço **Proxy**: apontar para `proxy/` (env Docker).
-3. Após o deploy do Django, copie a **URL pública** do Django (ex.: `https://sua-app.onrender.com`).
-4. Nas **variáveis do Proxy**, defina `DJANGO_UPSTREAM` com a URL pública do Django
-   (padrão local: `localhost:8000`).
-5. Adicione seu domínio customizado ao **Proxy** (esse será o front principal).
+3. Faça o **deploy do serviço Django primeiro** e copie a **URL pública completa** dele
+   (ex.: `https://copart-django-xxxxx.onrender.com`).
+4. No serviço **Proxy**, defina a variável `DJANGO_UPSTREAM` exatamente com essa URL HTTPS.
+   - **Nunca** use o próprio domínio do proxy aqui.
+   - Após salvar a variável, faça **redeploy** do proxy.
+5. Opcional: adicione seu domínio customizado ao **Proxy** (será o front principal).
 6. Acesse `seu-dominio/admin` para entrar no **Django Admin** (credenciais configuradas via env).
 
 ### Variáveis de ambiente (Render)
@@ -56,8 +58,7 @@ copart_full_mirror_project/
   - `PORT` (Render define automaticamente)
   - `UPSTREAM_HOST=www.copart.com.br`
   - `WHATSAPP_URL=http://wa.me/5511958462009`
-  - `DJANGO_UPSTREAM` = URL do serviço Django (ex.: `https://sua-app.onrender.com`)
-    - padrão local: `localhost:8000`
+  - `DJANGO_UPSTREAM` = URL pública do serviço Django (ex.: `https://copart-django-xxxxx.onrender.com`)
 - **Django**:
   - `PORT` (Render define automaticamente)
   - `DJANGO_SECRET_KEY` (defina um valor seguro)
@@ -70,3 +71,8 @@ copart_full_mirror_project/
 - O **login/registro** são **do seu domínio (Django)** e **não** do Copart.
 - O **simulador de lances** registra intenções de lance em seu banco (não interage com o Copart).
 - O **botão do WhatsApp** aparece em **todas as páginas** proxied e também nas páginas do Django.
+
+## QA rápido
+1. Acesse `https://SEU-DOMINIO/` e verifique o espelho do site Copart com o botão do WhatsApp.
+2. Acesse `https://SEU-DOMINIO/admin/` e `https://SEU-DOMINIO/app/` e confirme que o Django abre sem loops ou redirecionamentos indevidos.
+3. Links públicos devem permanecer no seu domínio e não redirecionar para login do Copart.
