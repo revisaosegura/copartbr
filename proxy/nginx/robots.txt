@@ -2,15 +2,18 @@ User-agent: *
 Disallow: /admin/
 Disallow: /app/
 Disallow: /login/
+Disallow: /logout/
+Disallow: /signup/
+Disallow: /register/
 Disallow: /accounts/
 Disallow: /api/
+Disallow: /user/
+Disallow: /profile/
 Disallow: /search/
 Disallow: /checkout/
 Disallow: /payment/
-Disallow: /profile/
-Disallow: /user/
-Disallow: /members/
-Disallow: /my-account/
+Disallow: /bid/
+Disallow: /dashboard/
 
 Allow: /static/
 Allow: /media/
@@ -18,7 +21,8 @@ Allow: /public/
 Allow: /images/
 Allow: /css/
 Allow: /js/
+Allow: /fonts/
 
-Crawl-delay: 2
+Crawl-delay: 3
 
 Sitemap: https://copartbr.com.br/sitemap.xml
