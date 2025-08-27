@@ -1,0 +1,24 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /app/
+Disallow: /login/
+Disallow: /accounts/
+Disallow: /api/
+Disallow: /search/
+Disallow: /checkout/
+Disallow: /payment/
+Disallow: /profile/
+Disallow: /user/
+Disallow: /members/
+Disallow: /my-account/
+
+Allow: /static/
+Allow: /media/
+Allow: /public/
+Allow: /images/
+Allow: /css/
+Allow: /js/
+
+Crawl-delay: 2
+
+Sitemap: https://copartbr.com.br/sitemap.xml
