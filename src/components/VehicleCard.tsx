@@ -21,7 +21,7 @@ interface Vehicle {
 }
 
 interface VehicleCardProps {
-  vehicle: any;
+  vehicle: Vehicle;
   setCurrentView?: (view: 'home' | 'search' | 'watchlist' | 'vehicle' | 'how-it-works') => void;
   setSelectedVehicleId?: (id: string | null) => void;
 }
@@ -43,7 +43,7 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
       }
       
       await placeBid({
-        vehicleId: vehicle._id as any,
+        vehicleId: vehicle._id,
         amount: amount,
       });
       
@@ -57,11 +57,11 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
 
   const handleWatchlist = async () => {
     try {
-      const added = await addToWatchlist({ vehicleId: vehicle._id as any });
+      const added = await addToWatchlist({ vehicleId: vehicle._id });
       setIsWatchlisted(added);
       toast.success(added ? "Adicionado à lista de observação" : "Removido da lista de observação");
     } catch (error) {
-      toast.error("Erro ao atualizar lista de observação");
+      toast.error(error instanceof Error ? error.message : "Erro ao atualizar lista de observação");
     }
   };
 
@@ -118,7 +118,7 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleWatchlist();
+              void handleWatchlist();
             }}
             className={`p-2 rounded-full shadow-lg transition-all ${
               isWatchlisted 
@@ -199,7 +199,7 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
                   />
                   <div className="flex space-x-2">
                     <button
-                      onClick={handleBid}
+                      onClick={() => void handleBid()}
                       className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold"
                     >
                       Confirmar
