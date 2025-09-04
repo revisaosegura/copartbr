@@ -35,6 +35,10 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
         return;
       }
       
+      await placeBid({
+        vehicleId: vehicle._id,
+        amount: amount,
+      });
         await placeBid({
           vehicleId: vehicle._id,
           amount,
@@ -49,6 +53,12 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
 
   const handleWatchlist = async () => {
     try {
+      const added = await addToWatchlist({ vehicleId: vehicle._id });
+      toast.success(added ? "Adicionado à lista de observação" : "Removido da lista de observação");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro ao atualizar lista de observação");
+    }
+  };
         const added = await addToWatchlist({ vehicleId: vehicle._id });
         toast.success(added ? "Adicionado à lista de observação" : "Removido da lista de observação");
       } catch {
@@ -169,6 +179,7 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
                       className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                     <button
+                      onClick={() => void handleBid()}
                         onClick={() => void handleBid()}
                       className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
                     >
@@ -250,6 +261,10 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
           {/* Recent Bids */}
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-2xl font-bold mb-4">Lances Recentes</h2>
+              {vehicle.recentBids && vehicle.recentBids.length > 0 ? (
+                <div className="space-y-2">
+                  {vehicle.recentBids.map((bid) => (
+                    <div key={bid._id} className="flex justify-between items-center py-2 border-b border-gray-100">
             {vehicle.recentBids && vehicle.recentBids.length > 0 ? (
               <div className="space-y-2">
                 {vehicle.recentBids.map((bid) => (

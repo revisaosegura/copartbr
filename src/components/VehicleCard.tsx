@@ -4,7 +4,7 @@ import { api } from "../../convex/_generated/api";
 import { toast } from "sonner";
 
 interface VehicleCardProps {
-  vehicle: any;
+  vehicle: Vehicle;
   setCurrentView?: (view: 'home' | 'search' | 'watchlist' | 'vehicle' | 'how-it-works') => void;
   setSelectedVehicleId?: (id: string | null) => void;
 }
@@ -27,6 +27,7 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
       
       await placeBid({
         vehicleId: vehicle._id,
+        amount: amount,
         amount,
       });
       
@@ -43,6 +44,8 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
       const added = await addToWatchlist({ vehicleId: vehicle._id });
       setIsWatchlisted(added);
       toast.success(added ? "Adicionado à lista de observação" : "Removido da lista de observação");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Erro ao atualizar lista de observação");
     } catch {
       toast.error("Erro ao atualizar lista de observação");
     }
@@ -181,6 +184,10 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <div className="flex space-x-2">
+                    <button
+                      onClick={() => void handleBid()}
+                      className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                    >
                       <button
                         onClick={() => void handleBid()}
                         className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold"
