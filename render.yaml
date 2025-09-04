@@ -1,8 +1,7 @@
 services:
   - type: web
     name: copartbr
-    env: node
+    runtime: node
     rootDir: .
-    installCommand: npm install
-    buildCommand: npm run build
+    buildCommand: npm install && npm run build
     startCommand: npm run start
