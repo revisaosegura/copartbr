@@ -9,7 +9,7 @@ interface VehicleDetailProps {
 }
 
 export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps) {
-  const vehicle = useQuery(api.vehicles.getVehicleById, { id: vehicleId as any });
+  const vehicle = useQuery(api.vehicles.getVehicleById, { id: vehicleId });
   const [bidAmount, setBidAmount] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
@@ -39,6 +39,10 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
         vehicleId: vehicle._id,
         amount: amount,
       });
+        await placeBid({
+          vehicleId: vehicle._id,
+          amount,
+        });
       
       toast.success("Lance realizado com sucesso!");
       setBidAmount("");
@@ -55,6 +59,12 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
       toast.error(error instanceof Error ? error.message : "Erro ao atualizar lista de observação");
     }
   };
+        const added = await addToWatchlist({ vehicleId: vehicle._id });
+        toast.success(added ? "Adicionado à lista de observação" : "Removido da lista de observação");
+      } catch {
+        toast.error("Erro ao atualizar lista de observação");
+      }
+    };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -170,6 +180,7 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
                     />
                     <button
                       onClick={() => void handleBid()}
+                        onClick={() => void handleBid()}
                       className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
                     >
                       Fazer Lance
@@ -254,6 +265,10 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
                 <div className="space-y-2">
                   {vehicle.recentBids.map((bid) => (
                     <div key={bid._id} className="flex justify-between items-center py-2 border-b border-gray-100">
+            {vehicle.recentBids && vehicle.recentBids.length > 0 ? (
+              <div className="space-y-2">
+                {vehicle.recentBids.map((bid) => (
+                  <div key={bid._id} className="flex justify-between items-center py-2 border-b border-gray-100">
                     <span className="text-sm text-gray-600">
                       {new Date(bid.timestamp).toLocaleString('pt-BR')}
                     </span>

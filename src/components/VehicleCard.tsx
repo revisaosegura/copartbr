@@ -3,23 +3,6 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { toast } from "sonner";
 
-interface Vehicle {
-  _id: string;
-  lotNumber: string;
-  year: number;
-  make: string;
-  model: string;
-  currentBid: number;
-  estimatedRetailValue: number;
-  saleDate: string;
-  saleTime: string;
-  location: string;
-  primaryDamage: string;
-  odometer: number;
-  status: "upcoming" | "live" | "sold";
-  imageUrls?: (string | null)[];
-}
-
 interface VehicleCardProps {
   vehicle: Vehicle;
   setCurrentView?: (view: 'home' | 'search' | 'watchlist' | 'vehicle' | 'how-it-works') => void;
@@ -45,6 +28,7 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
       await placeBid({
         vehicleId: vehicle._id,
         amount: amount,
+        amount,
       });
       
       toast.success("Lance realizado com sucesso!");
@@ -62,6 +46,8 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
       toast.success(added ? "Adicionado à lista de observação" : "Removido da lista de observação");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao atualizar lista de observação");
+    } catch {
+      toast.error("Erro ao atualizar lista de observação");
     }
   };
 
@@ -202,6 +188,10 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
                       onClick={() => void handleBid()}
                       className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold"
                     >
+                      <button
+                        onClick={() => void handleBid()}
+                        className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                      >
                       Confirmar
                     </button>
                     <button
