@@ -4,68 +4,68 @@ import { authTables } from "@convex-dev/auth/server";
 
 const applicationTables = {
   vehicles: defineTable({
+    lotNumber: v.string(),
+    year: v.number(),
     make: v.string(),
     model: v.string(),
-    year: v.number(),
-    vin: v.string(),
-    mileage: v.number(),
-    condition: v.string(), // "Run and Drive", "Start/Run", "Enhanced", "Stationary"
-    damage: v.string(), // "Front End", "Side", "Rear End", "All Over", etc.
-    location: v.string(),
-    lotNumber: v.string(),
-    estimatedValue: v.number(),
-    saleDate: v.number(), // timestamp
-    images: v.array(v.id("_storage")),
-    description: v.string(),
-    engineType: v.string(),
-    transmission: v.string(),
-    fuelType: v.string(),
-    color: v.string(),
     bodyStyle: v.string(),
-    status: v.string(), // "upcoming", "live", "sold", "unsold"
-    sellerId: v.id("users"),
+    engine: v.string(),
+    transmission: v.string(),
+    fuel: v.string(),
+    odometer: v.number(),
+    primaryDamage: v.string(),
+    secondaryDamage: v.optional(v.string()),
+    estimatedRetailValue: v.number(),
+    currentBid: v.number(),
+    saleDate: v.string(),
+    saleTime: v.string(),
+    location: v.string(),
+    seller: v.string(),
+    titleType: v.string(),
+    keys: v.boolean(),
+    images: v.array(v.id("_storage")),
+    status: v.union(v.literal("upcoming"), v.literal("live"), v.literal("sold")),
+    vin: v.string(),
+    color: v.string(),
+    condition: v.string(),
+    grade: v.string(),
   })
     .index("by_status", ["status"])
-    .index("by_sale_date", ["saleDate"])
     .index("by_make_model", ["make", "model"])
+    .index("by_sale_date", ["saleDate"])
     .searchIndex("search_vehicles", {
-      searchField: "description",
-      filterFields: ["make", "model", "status"]
+      searchField: "model",
+      filterFields: ["make", "status", "location"]
     }),
 
-  auctions: defineTable({
-    vehicleId: v.id("vehicles"),
-    startingBid: v.number(),
-    currentBid: v.number(),
-    bidIncrement: v.number(),
-    startTime: v.number(),
-    endTime: v.number(),
-    status: v.string(), // "upcoming", "live", "ended"
-    winnerId: v.optional(v.id("users")),
-    totalBids: v.number(),
-  })
-    .index("by_status", ["status"])
-    .index("by_vehicle", ["vehicleId"])
-    .index("by_end_time", ["endTime"]),
-
   bids: defineTable({
-    auctionId: v.id("auctions"),
-    bidderId: v.id("users"),
+    vehicleId: v.id("vehicles"),
+    userId: v.id("users"),
     amount: v.number(),
     timestamp: v.number(),
     isWinning: v.boolean(),
   })
-    .index("by_auction", ["auctionId"])
-    .index("by_bidder", ["bidderId"])
-    .index("by_auction_amount", ["auctionId", "amount"]),
+    .index("by_vehicle", ["vehicleId"])
+    .index("by_user", ["userId"])
+    .index("by_vehicle_amount", ["vehicleId", "amount"]),
 
   watchlist: defineTable({
     userId: v.id("users"),
     vehicleId: v.id("vehicles"),
   })
     .index("by_user", ["userId"])
-    .index("by_vehicle", ["vehicleId"])
-    .index("by_user_vehicle", ["userId", "vehicleId"]),
+    .index("by_vehicle", ["vehicleId"]),
+
+  auctions: defineTable({
+    name: v.string(),
+    date: v.string(),
+    time: v.string(),
+    location: v.string(),
+    status: v.union(v.literal("upcoming"), v.literal("live"), v.literal("completed")),
+    vehicleCount: v.number(),
+  })
+    .index("by_status", ["status"])
+    .index("by_date", ["date"]),
 };
 
 export default defineSchema({

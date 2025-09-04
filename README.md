@@ -1,9 +1,9 @@
-# Copart Clone - Auto Auction Platform
+# Clone do Copart.com.br
   
 This is a project built with [Chef](https://chef.convex.dev) using [Convex](https://convex.dev) as its backend.
  You can find docs about Chef with useful information like how to deploy to production [here](https://docs.convex.dev/chef).
   
-This project is connected to the Convex deployment named [`first-chipmunk-68`](https://dashboard.convex.dev/d/first-chipmunk-68).
+This project is connected to the Convex deployment named [`basic-cardinal-157`](https://dashboard.convex.dev/d/basic-cardinal-157).
   
 ## Project structure
   
