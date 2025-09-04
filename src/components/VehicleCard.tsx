@@ -3,23 +3,6 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { toast } from "sonner";
 
-interface Vehicle {
-  _id: string;
-  lotNumber: string;
-  year: number;
-  make: string;
-  model: string;
-  currentBid: number;
-  estimatedRetailValue: number;
-  saleDate: string;
-  saleTime: string;
-  location: string;
-  primaryDamage: string;
-  odometer: number;
-  status: "upcoming" | "live" | "sold";
-  imageUrls?: (string | null)[];
-}
-
 interface VehicleCardProps {
   vehicle: any;
   setCurrentView?: (view: 'home' | 'search' | 'watchlist' | 'vehicle' | 'how-it-works') => void;
@@ -43,8 +26,8 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
       }
       
       await placeBid({
-        vehicleId: vehicle._id as any,
-        amount: amount,
+        vehicleId: vehicle._id,
+        amount,
       });
       
       toast.success("Lance realizado com sucesso!");
@@ -57,10 +40,10 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
 
   const handleWatchlist = async () => {
     try {
-      const added = await addToWatchlist({ vehicleId: vehicle._id as any });
+      const added = await addToWatchlist({ vehicleId: vehicle._id });
       setIsWatchlisted(added);
       toast.success(added ? "Adicionado à lista de observação" : "Removido da lista de observação");
-    } catch (error) {
+    } catch {
       toast.error("Erro ao atualizar lista de observação");
     }
   };
@@ -118,7 +101,7 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
           <button
             onClick={(e) => {
               e.stopPropagation();
-              handleWatchlist();
+              void handleWatchlist();
             }}
             className={`p-2 rounded-full shadow-lg transition-all ${
               isWatchlisted 
@@ -198,10 +181,10 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                   <div className="flex space-x-2">
-                    <button
-                      onClick={handleBid}
-                      className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold"
-                    >
+                      <button
+                        onClick={() => void handleBid()}
+                        className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold"
+                      >
                       Confirmar
                     </button>
                     <button
