@@ -9,7 +9,7 @@ interface VehicleDetailProps {
 }
 
 export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps) {
-  const vehicle = useQuery(api.vehicles.getVehicleById, { id: vehicleId as any });
+  const vehicle = useQuery(api.vehicles.getVehicleById, { id: vehicleId });
   const [bidAmount, setBidAmount] = useState("");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   
@@ -35,10 +35,10 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
         return;
       }
       
-      await placeBid({
-        vehicleId: vehicle._id as any,
-        amount: amount,
-      });
+        await placeBid({
+          vehicleId: vehicle._id,
+          amount,
+        });
       
       toast.success("Lance realizado com sucesso!");
       setBidAmount("");
@@ -49,12 +49,12 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
 
   const handleWatchlist = async () => {
     try {
-      const added = await addToWatchlist({ vehicleId: vehicle._id as any });
-      toast.success(added ? "Adicionado à lista de observação" : "Removido da lista de observação");
-    } catch (error) {
-      toast.error("Erro ao atualizar lista de observação");
-    }
-  };
+        const added = await addToWatchlist({ vehicleId: vehicle._id });
+        toast.success(added ? "Adicionado à lista de observação" : "Removido da lista de observação");
+      } catch {
+        toast.error("Erro ao atualizar lista de observação");
+      }
+    };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -169,14 +169,14 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
                       className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
                     <button
-                      onClick={handleBid}
+                        onClick={() => void handleBid()}
                       className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors font-semibold"
                     >
                       Fazer Lance
                     </button>
                   </div>
                   <button
-                    onClick={handleWatchlist}
+                    onClick={() => void handleWatchlist()}
                     className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
                   >
                     Adicionar à Lista de Observação
@@ -252,7 +252,7 @@ export function VehicleDetail({ vehicleId, setCurrentView }: VehicleDetailProps)
             <h2 className="text-2xl font-bold mb-4">Lances Recentes</h2>
             {vehicle.recentBids && vehicle.recentBids.length > 0 ? (
               <div className="space-y-2">
-                {vehicle.recentBids.map((bid, index) => (
+                {vehicle.recentBids.map((bid) => (
                   <div key={bid._id} className="flex justify-between items-center py-2 border-b border-gray-100">
                     <span className="text-sm text-gray-600">
                       {new Date(bid.timestamp).toLocaleString('pt-BR')}

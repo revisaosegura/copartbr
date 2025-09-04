@@ -1,23 +1,5 @@
 import { VehicleCard } from "./VehicleCard";
 
-interface Vehicle {
-  _id: string;
-  lotNumber: string;
-  year: number;
-  make: string;
-  model: string;
-  currentBid: number;
-  estimatedRetailValue: number;
-  saleDate: string;
-  saleTime: string;
-  location: string;
-  primaryDamage: string;
-  odometer: number;
-  status: "upcoming" | "live" | "sold";
-  imageUrls?: (string | null)[];
-  [key: string]: any;
-}
-
 interface VehicleGridProps {
   vehicles: any[];
   setCurrentView?: (view: 'home' | 'search' | 'watchlist' | 'vehicle' | 'how-it-works') => void;

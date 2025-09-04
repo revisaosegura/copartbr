@@ -1,5 +1,3 @@
-import { useState } from "react";
-
 interface SearchBarProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
