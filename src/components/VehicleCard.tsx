@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 interface VehicleCardProps {
   vehicle: Vehicle;
-  setCurrentView?: (view: 'home' | 'search' | 'watchlist' | 'vehicle' | 'how-it-works') => void;
+  setCurrentView?: (view: "home" | "search" | "watchlist" | "vehicle" | "how-it-works") => void;
   setSelectedVehicleId?: (id: string | null) => void;
 }
 
@@ -13,7 +13,7 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
   const [bidAmount, setBidAmount] = useState("");
   const [showBidForm, setShowBidForm] = useState(false);
   const [isWatchlisted, setIsWatchlisted] = useState(false);
-  
+
   const placeBid = useMutation(api.vehicles.placeBid);
   const addToWatchlist = useMutation(api.vehicles.addToWatchlist);
 
@@ -24,13 +24,8 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
         toast.error("O lance deve ser maior que o lance atual");
         return;
       }
-      
-      await placeBid({
-        vehicleId: vehicle._id,
-        amount: amount,
-        amount,
-      });
-      
+
+      await placeBid({ vehicleId: vehicle._id, amount });
       toast.success("Lance realizado com sucesso!");
       setBidAmount("");
       setShowBidForm(false);
@@ -46,33 +41,39 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
       toast.success(added ? "Adicionado à lista de observação" : "Removido da lista de observação");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Erro ao atualizar lista de observação");
-    } catch {
-      toast.error("Erro ao atualizar lista de observação");
     }
   };
 
   const handleViewDetails = () => {
     if (setCurrentView && setSelectedVehicleId) {
       setSelectedVehicleId(vehicle._id);
-      setCurrentView('vehicle');
+      setCurrentView("vehicle");
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
   const getStatusBadge = () => {
     switch (vehicle.status) {
-      case 'live':
-        return <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">● AO VIVO</span>;
-      case 'upcoming':
-        return <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">PRÓXIMO</span>;
-      case 'sold':
-        return <span className="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-bold">VENDIDO</span>;
+      case "live":
+        return (
+          <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-bold animate-pulse">
+            ● AO VIVO
+          </span>
+        );
+      case "upcoming":
+        return (
+          <span className="bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+            PRÓXIMO
+          </span>
+        );
+      case "sold":
+        return (
+          <span className="bg-gray-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+            VENDIDO
+          </span>
+        );
     }
   };
 
@@ -97,9 +98,7 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
             </div>
           </div>
         )}
-        <div className="absolute top-3 left-3">
-          {getStatusBadge()}
-        </div>
+        <div className="absolute top-3 left-3">{getStatusBadge()}</div>
         <div className="absolute top-3 right-3">
           <button
             onClick={(e) => {
@@ -107,9 +106,7 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
               void handleWatchlist();
             }}
             className={`p-2 rounded-full shadow-lg transition-all ${
-              isWatchlisted 
-                ? 'bg-red-500 text-white' 
-                : 'bg-white text-gray-600 hover:bg-gray-50'
+              isWatchlisted ? "bg-red-500 text-white" : "bg-white text-gray-600 hover:bg-gray-50"
             }`}
           >
             <svg className="w-5 h-5" fill={isWatchlisted ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
@@ -144,7 +141,7 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Quilometragem:</span>
-            <span>{vehicle.odometer.toLocaleString('pt-BR')} km</span>
+            <span>{vehicle.odometer.toLocaleString("pt-BR")} km</span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Dano:</span>
@@ -152,7 +149,9 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Leilão:</span>
-            <span>{new Date(vehicle.saleDate).toLocaleDateString('pt-BR')} {vehicle.saleTime}</span>
+            <span>
+              {new Date(vehicle.saleDate).toLocaleDateString("pt-BR")} {vehicle.saleTime}
+            </span>
           </div>
         </div>
 
@@ -164,8 +163,8 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
           >
             Ver Detalhes
           </button>
-          
-          {vehicle.status !== 'sold' && (
+
+          {vehicle.status !== "sold" && (
             <>
               {!showBidForm ? (
                 <button
@@ -188,10 +187,6 @@ export function VehicleCard({ vehicle, setCurrentView, setSelectedVehicleId }: V
                       onClick={() => void handleBid()}
                       className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold"
                     >
-                      <button
-                        onClick={() => void handleBid()}
-                        className="flex-1 bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700 transition-colors font-semibold"
-                      >
                       Confirmar
                     </button>
                     <button
