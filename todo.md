@@ -80,3 +80,26 @@
 - [x] Verificar todas as cores e espaçamentos
 - [x] Garantir tipografia idêntica
 - [x] Animações e transições similares
+
+## Painel Administrativo
+- [x] Fazer upgrade do projeto para web-db-user (backend + banco de dados)
+- [x] Criar estrutura do banco de dados
+- [x] Dashboard com estatísticas do site
+- [x] Visualização de total de veículos
+- [x] Visualização de total de acessos
+- [ ] Gráficos de estatísticas
+- [ ] Controle de atualizações automáticas
+- [ ] Ativar/desativar atualizações automáticas
+- [ ] Configurar intervalo de atualização
+- [x] Logs de sincronização
+- [ ] Histórico de atualizações
+- [ ] Registro de mudanças de preços
+- [ ] Gerenciamento de conteúdo
+- [x] CRUD de veículos (backend)
+- [ ] Interface de CRUD de veículos (frontend)
+- [ ] Edição de informações de contato
+- [ ] Gerenciamento de banners
+- [x] Interface amigável
+- [x] Design responsivo do painel
+- [x] Navegação intuitiva
+- [x] Sistema de autenticação para admin

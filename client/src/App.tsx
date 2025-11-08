@@ -19,8 +19,10 @@ import AcharPecas from "./pages/AcharPecas";
 import Registrar from "./pages/Registrar";
 import Entrar from "./pages/Entrar";
 import VehicleDetail from "./pages/VehicleDetail";
+import Admin from "./pages/Admin";
 
 function Router() {
+  // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
       <Route path={"/"} component={Home} />
@@ -35,6 +37,7 @@ function Router() {
       <Route path={"/registrar"} component={Registrar} />
       <Route path={"/entrar"} component={Entrar} />
       <Route path={"/veiculo/:id"} component={VehicleDetail} />
+      <Route path={"/admin"} component={Admin} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
