@@ -108,3 +108,33 @@
 - [x] Corrigir erro de importação das páginas Registrar e Entrar
 - [x] Verificar todas as rotas funcionando
 - [x] Testar navegação completa
+
+## Análise de API Copart
+- [x] Identificar endpoints de API para veículos
+- [x] Documentar estrutura de requisições
+- [x] Documentar estrutura de respostas
+- [x] Testar endpoints identificados
+
+## Integração Stripe
+- [ ] Adicionar recurso Stripe ao projeto
+- [ ] Configurar chaves de API do Stripe
+- [ ] Criar endpoints de pagamento no backend
+- [ ] Implementar checkout para lances
+- [ ] Implementar checkout para compra direta
+- [ ] Adicionar histórico de pagamentos
+- [ ] Testar fluxo completo de pagamento
+
+## Correção de Bug
+- [x] Corrigir erro de tags <a> aninhadas na página AcharPecas
+
+## Integração API de Leilão
+- [x] Pesquisar APIs de leilão disponíveis
+- [x] Avaliar APIs encontradas
+- [ ] Selecionar melhor API (Bidlogix comercial ou sistema customizado)
+- [ ] Integrar API ao backend
+- [ ] Implementar sistema de lances em tempo real
+- [ ] Criar interface de leilão no frontend
+- [ ] Testar funcionalidades de leilão
+
+## Logo
+- [x] Adicionar logo da Copart no header

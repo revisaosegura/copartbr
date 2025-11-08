@@ -17,6 +17,7 @@ export const users = mysqlTable("users", {
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  stripeCustomerId: varchar("stripeCustomerId", { length: 255 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -111,3 +112,39 @@ export const siteStats = mysqlTable("siteStats", {
 
 export type SiteStats = typeof siteStats.$inferSelect;
 export type InsertSiteStats = typeof siteStats.$inferInsert;
+
+/**
+ * Payments table - stores payment transactions
+ */
+export const payments = mysqlTable("payments", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  vehicleId: int("vehicleId"),
+  stripePaymentIntentId: varchar("stripePaymentIntentId", { length: 255 }),
+  stripeCheckoutSessionId: varchar("stripeCheckoutSessionId", { length: 255 }),
+  amount: int("amount").notNull(), // Em centavos
+  currency: varchar("currency", { length: 3 }).default("BRL"),
+  status: mysqlEnum("status", ["pending", "completed", "failed", "refunded"]).default("pending").notNull(),
+  type: mysqlEnum("type", ["deposit", "bid", "purchase"]).notNull(),
+  metadata: text("metadata"), // JSON string
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = typeof payments.$inferInsert;
+
+/**
+ * Bids table - stores user bids on vehicles
+ */
+export const bids = mysqlTable("bids", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  vehicleId: int("vehicleId").notNull(),
+  amount: int("amount").notNull(), // Em centavos
+  status: mysqlEnum("status", ["active", "outbid", "won", "lost"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Bid = typeof bids.$inferSelect;
+export type InsertBid = typeof bids.$inferInsert;

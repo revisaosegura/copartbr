@@ -15,6 +15,13 @@
       "when": 1762626150920,
       "tag": "0001_tired_maestro",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1762627243102,
+      "tag": "0002_lumpy_krista_starr",
+      "breakpoints": true
     }
   ]
 }

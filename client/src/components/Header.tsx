@@ -20,10 +20,8 @@ export default function Header() {
           {showMobileMenu ? <X size={24} /> : <Menu size={24} />}
         </button>
         {/* Logo */}
-        <Link href="/">
-          <a className="flex items-center">
-            <span className="text-3xl font-bold italic tracking-tight">Copart</span>
-          </a>
+        <Link href="/" className="flex items-center">
+          <img src="/copart-logo.png" alt="Copart" className="h-10 md:h-12" />
         </Link>
 
         {/* Search Bar */}
@@ -66,18 +64,14 @@ export default function Header() {
             )}
           </div>
           <Link href="/registrar">
-            <a>
-              <Button variant="outline" className="bg-[#FDB714] hover:bg-[#e5a512] text-black border-none font-semibold">
-                Registrar
-              </Button>
-            </a>
+            <Button variant="outline" className="bg-[#FDB714] hover:bg-[#e5a512] text-black border-none font-semibold">
+              Registrar
+            </Button>
           </Link>
           <Link href="/entrar">
-            <a>
-              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-[#003087]">
-                Entrar
-              </Button>
-            </a>
+            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-[#003087]">
+              Entrar
+            </Button>
           </Link>
         </div>
       </div>
@@ -97,59 +91,34 @@ export default function Header() {
             </div>
             <ul className="space-y-2">
               <li>
-                <Link href="/">
-                  <a className="block px-4 py-2 hover:bg-[#003087] transition-colors">Início</a>
-                </Link>
+                <Link href="/" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Início</Link>
               </li>
               <li>
-                <Link href="/como-funciona">
-                  <a className="block px-4 py-2 hover:bg-[#003087] transition-colors">Como Funciona</a>
-                </Link>
+                <Link href="/encontrar-veiculo" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Encontrar um Veículo</Link>
               </li>
               <li>
-                <Link href="/encontrar-veiculo">
-                  <a className="block px-4 py-2 hover:bg-[#003087] transition-colors">Encontrar um Veículo</a>
-                </Link>
+                <Link href="/leiloes" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Leilões</Link>
               </li>
               <li>
-                <Link href="/leiloes">
-                  <a className="block px-4 py-2 hover:bg-[#003087] transition-colors">Leilões</a>
-                </Link>
+                <Link href="/localizacoes" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Localizações</Link>
               </li>
               <li>
-                <Link href="/localizacoes">
-                  <a className="block px-4 py-2 hover:bg-[#003087] transition-colors">Localizações</a>
-                </Link>
+                <Link href="/suporte" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Suporte</Link>
               </li>
               <li>
-                <Link href="/suporte">
-                  <a className="block px-4 py-2 hover:bg-[#003087] transition-colors">Suporte</a>
-                </Link>
+                <Link href="/vender-meu-carro" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Vender Meu Carro</Link>
               </li>
               <li>
-                <Link href="/vender-meu-carro">
-                  <a className="block px-4 py-2 hover:bg-[#003087] transition-colors">Vender Meu Carro</a>
-                </Link>
+                <Link href="/venda-direta" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Venda Direta</Link>
               </li>
               <li>
-                <Link href="/venda-direta">
-                  <a className="block px-4 py-2 hover:bg-[#003087] transition-colors">Venda Direta</a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/achar-pecas">
-                  <a className="block px-4 py-2 hover:bg-[#003087] transition-colors">Achar Peças</a>
-                </Link>
+                <Link href="/achar-pecas" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Achar Peças</Link>
               </li>
               <li className="pt-4 border-t border-[#003087]">
-                <Link href="/registrar">
-                  <a className="block px-4 py-2 bg-[#FDB714] text-black font-semibold rounded text-center">Registrar</a>
-                </Link>
+                <Link href="/registrar" className="block px-4 py-2 bg-[#FDB714] text-black font-semibold rounded text-center">Registrar</Link>
               </li>
               <li>
-                <Link href="/entrar">
-                  <a className="block px-4 py-2 border border-white rounded text-center">Entrar</a>
-                </Link>
+                <Link href="/entrar" className="block px-4 py-2 border border-white rounded text-center">Entrar</Link>
               </li>
             </ul>
           </div>
@@ -161,66 +130,48 @@ export default function Header() {
         <div className="container">
           <ul className="flex items-center gap-1">
             <li>
-              <Link href="/">
-                <a className="block px-4 py-3 hover:bg-[#003087] transition-colors">
-                  Início
-                </a>
+              <Link href="/" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+                Início
               </Link>
             </li>
             <li>
-              <Link href="/como-funciona">
-                <a className="block px-4 py-3 hover:bg-[#003087] transition-colors">
-                  Como Funciona
-                </a>
+              <Link href="/como-funciona" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+                Como Funciona
               </Link>
             </li>
             <li>
-              <Link href="/encontrar-veiculo">
-                <a className="block px-4 py-3 hover:bg-[#003087] transition-colors">
-                  Encontrar um Veículo
-                </a>
+              <Link href="/encontrar-veiculo" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+                Encontrar um Veículo
               </Link>
             </li>
             <li>
-              <Link href="/leiloes">
-                <a className="block px-4 py-3 hover:bg-[#003087] transition-colors">
-                  Leilões
-                </a>
+              <Link href="/leiloes" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+                Leilões
               </Link>
             </li>
             <li>
-              <Link href="/localizacoes">
-                <a className="block px-4 py-3 hover:bg-[#003087] transition-colors">
-                  Localizações
-                </a>
+              <Link href="/localizacoes" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+                Localizações
               </Link>
             </li>
             <li>
-              <Link href="/suporte">
-                <a className="block px-4 py-3 hover:bg-[#003087] transition-colors">
-                  Suporte
-                </a>
+              <Link href="/suporte" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+                Suporte
               </Link>
             </li>
             <li>
-              <Link href="/vender-meu-carro">
-                <a className="block px-4 py-3 hover:bg-[#003087] transition-colors">
-                  Vender Meu Carro
-                </a>
+              <Link href="/vender-meu-carro" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+                Vender Meu Carro
               </Link>
             </li>
             <li>
-              <Link href="/venda-direta">
-                <a className="block px-4 py-3 hover:bg-[#003087] transition-colors">
-                  Venda Direta
-                </a>
+              <Link href="/venda-direta" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+                Venda Direta
               </Link>
             </li>
             <li>
-              <Link href="/achar-pecas">
-                <a className="block px-4 py-3 hover:bg-[#003087] transition-colors">
-                  Achar Peças
-                </a>
+              <Link href="/achar-pecas" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+                Achar Peças
               </Link>
             </li>
           </ul>
