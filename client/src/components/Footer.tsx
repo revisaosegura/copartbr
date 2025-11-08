@@ -65,8 +65,9 @@ export default function Footer() {
           <div>
             <h3 className="text-xl font-bold mb-4">Contato</h3>
             <ul className="space-y-2 text-sm text-gray-300">
-              <li>Email: contato@copart.com.br</li>
-              <li>Tel: 0800 123 4567</li>
+              <li>Email: contato@copartbr.com.br</li>
+              <li>Tel: +55 11 91471-9390</li>
+              <li>WhatsApp: (11) 91471-9390</li>
               <li>Horário: Seg-Sex 8h-18h</li>
             </ul>
           </div>

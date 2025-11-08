@@ -46,3 +46,37 @@
 - [x] Tipografia consistente
 - [x] Ícones e imagens
 - [x] Design responsivo para mobile/tablet/desktop
+
+## Sincronização em Tempo Real com Site Original
+- [ ] Analisar APIs e endpoints do site Copart real
+- [ ] Adicionar backend com servidor (upgrade para web-db-user)
+- [ ] Implementar sistema de scraping/proxy para capturar dados reais
+- [ ] Sistema de cache para armazenar dados
+- [ ] Atualização automática em tempo real dos dados
+- [ ] Sincronizar fotos dos veículos
+- [ ] Sincronizar informações dos leilões
+- [ ] Sincronizar preços e lances atuais
+- [ ] Sincronizar catálogo completo de veículos
+- [ ] Sincronizar localizações e pátios
+- [ ] Sistema de polling ou websockets para atualizações
+
+## Personalização de Contatos
+- [x] Substituir todos os telefones por: +55 11 91471-9390
+- [x] Substituir todos os emails por: contato@copartbr.com.br
+- [x] Adicionar widget flutuante do WhatsApp
+- [x] Widget deve direcionar para: https://wa.me/5511914719390
+- [x] Widget fixo no canto inferior direito
+- [x] Design atrativo e profissional do widget
+
+## Sistema de Dados Simulados
+- [x] Criar gerador de dados realistas de veículos
+- [x] Sistema de atualização automática dos dados
+- [x] Dados simulados para leilões
+- [x] Dados simulados para preços e lances
+- [x] Imagens realistas de veículos
+
+## Melhorias de Design
+- [x] Ajustar para ficar 100% idêntico ao site original
+- [x] Verificar todas as cores e espaçamentos
+- [x] Garantir tipografia idêntica
+- [x] Animações e transições similares

@@ -5,56 +5,36 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import VehicleCard from "@/components/VehicleCard";
 import { Link } from "wouter";
+import { useEffect, useState } from "react";
+import { getFeaturedVehicles, getVehicles, updateVehiclePrices } from "@/lib/vehicleData";
 
 export default function Home() {
-  const featuredVehicles = [
-    {
-      id: "1",
-      image: "/car1.jpg",
-      title: "2023 FERRARI SF90 STRADALE 4.0 V8 BITURBO HIBRID",
-      lotNumber: "1036018",
-      currentBid: "R$ 200.000 BRL",
-      location: "Leilão Pátio Porto Seguro - SP",
-    },
-    {
-      id: "2",
-      image: "/car2.jpg",
-      title: "2010 CHRYSLER PT CRUISER",
-      lotNumber: "1007147",
-      currentBid: "R$ 15.900 BRL",
-      location: "Goiânia - GO",
-    },
-    {
-      id: "3",
-      image: "/car3.jpg",
-      title: "2017 VOLKSWAGEN SAVEIRO CE",
-      lotNumber: "1051575",
-      currentBid: "R$ 34.900 BRL",
-      location: "Embú das Artes - SP",
-    },
-    {
-      id: "4",
-      image: "/car4.jpg",
-      title: "2018 FORD MUSTANG",
-      lotNumber: "1042513",
-      currentBid: "R$ 120.050 BRL",
-      location: "Curitiba - PR",
-    },
-  ];
+  const [featuredVehicles, setFeaturedVehicles] = useState(getFeaturedVehicles(4));
+  const [totalVehicles, setTotalVehicles] = useState(getVehicles().length);
+
+  useEffect(() => {
+    // Atualizar preços a cada 30 segundos
+    const interval = setInterval(() => {
+      updateVehiclePrices();
+      setFeaturedVehicles(getFeaturedVehicles(4));
+      setTotalVehicles(getVehicles().length);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
       {/* Banner de Destaque */}
-      <div className="bg-[#FF6B00] text-white py-3 text-center">
+      <div className="bg-[#FF6B00] text-white py-3 text-center relative">
         <p className="font-semibold">
           Venda Seu Veículo De Forma Segura. Acesse o link e{" "}
           <Link href="/vender-meu-carro">
             <a className="underline hover:text-gray-200">Saiba Mais &gt;</a>
           </Link>
         </p>
-        <button className="absolute right-4 top-2 text-2xl hover:opacity-80">×</button>
       </div>
 
       <main>
@@ -69,7 +49,7 @@ export default function Home() {
                   <span className="text-[#FDB714]">vendedores</span> ao redor do mundo.
                 </h1>
                 <p className="text-xl mb-4">
-                  São + de <span className="text-[#FDB714] font-bold">12.487</span> veículos disponíveis para compra online.
+                  São + de <span className="text-[#FDB714] font-bold">{totalVehicles.toLocaleString("pt-BR")}</span> veículos disponíveis para compra online.
                 </p>
                 <p className="text-lg text-gray-300">
                   De automóveis a caminhões, motocicletas e muito mais.

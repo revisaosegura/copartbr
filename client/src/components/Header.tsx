@@ -22,7 +22,7 @@ export default function Header() {
         {/* Logo */}
         <Link href="/">
           <a className="flex items-center">
-            <span className="text-3xl font-bold italic">Copart</span>
+            <span className="text-3xl font-bold italic tracking-tight">Copart</span>
           </a>
         </Link>
 
