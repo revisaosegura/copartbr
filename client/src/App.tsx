@@ -6,10 +6,34 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 
+// Lazy load pages
+import ComoFunciona from "./pages/ComoFunciona";
+import EncontrarVeiculo from "./pages/EncontrarVeiculo";
+import Leiloes from "./pages/Leiloes";
+import Localizacoes from "./pages/Localizacoes";
+import Suporte from "./pages/Suporte";
+import VenderMeuCarro from "./pages/VenderMeuCarro";
+import VendaDireta from "./pages/VendaDireta";
+import AcharPecas from "./pages/AcharPecas";
+import Registrar from "./pages/Registrar";
+import Entrar from "./pages/Entrar";
+import VehicleDetail from "./pages/VehicleDetail";
+
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
+      <Route path={"/como-funciona"} component={ComoFunciona} />
+      <Route path={"/encontrar-veiculo"} component={EncontrarVeiculo} />
+      <Route path={"/leiloes"} component={Leiloes} />
+      <Route path={"/localizacoes"} component={Localizacoes} />
+      <Route path={"/suporte"} component={Suporte} />
+      <Route path={"/vender-meu-carro"} component={VenderMeuCarro} />
+      <Route path={"/venda-direta"} component={VendaDireta} />
+      <Route path={"/achar-pecas"} component={AcharPecas} />
+      <Route path={"/registrar"} component={Registrar} />
+      <Route path={"/entrar"} component={Entrar} />
+      <Route path={"/veiculo/:id"} component={VehicleDetail} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
