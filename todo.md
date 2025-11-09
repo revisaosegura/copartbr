@@ -171,14 +171,24 @@
 - [x] Implementar menu "Achar Peças"
 
 ## Páginas Faltantes
-- [ ] Identificar e criar todas as páginas que faltam
-- [ ] Garantir que cada página tenha conteúdo idêntico ao original
+- [x] Lista de Vendas
+- [x] Favoritos
+- [x] Pesquisas Salvas
+- [x] Alerta de Veículos
+- [x] Leilões de Hoje
+- [x] Calendário de Leilões
+- [x] Como Comprar
+- [x] Perguntas Comuns
+- [x] Vídeos
+- [x] Precisa de Ajuda?
+- [x] Veja as Ofertas (Venda Direta)
+- [x] O que é Venda Direta?
 
 ## Listagem de Veículos
-- [ ] Implementar grid de veículos idêntico ao original
-- [ ] Adicionar todos os filtros de busca
-- [ ] Implementar paginação
-- [ ] Adicionar ordenação (preço, data, etc.)
+- [x] Implementar grid de veículos idêntico ao original
+- [x] Adicionar todos os filtros de busca
+- [x] Implementar paginação
+- [x] Adicionar ordenação de resultados etc.)
 - [ ] Implementar visualização em grid/lista
 
 ## Ajustes de Design

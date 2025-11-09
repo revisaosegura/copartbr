@@ -24,6 +24,14 @@ import ListaVendas from "./pages/ListaVendas";
 import Favoritos from "./pages/Favoritos";
 import PesquisasSalvas from "./pages/PesquisasSalvas";
 import AlertaVeiculos from "./pages/AlertaVeiculos";
+import LeiloesHoje from "./pages/LeiloesHoje";
+import CalendarioLeiloes from "./pages/CalendarioLeiloes";
+import ComoComprar from "./pages/ComoComprar";
+import PerguntasComuns from "./pages/PerguntasComuns";
+import Videos from "./pages/Videos";
+import PrecisaAjuda from "./pages/PrecisaAjuda";
+import VendaDiretaOfertas from "./pages/VendaDiretaOfertas";
+import VendaDiretaSobre from "./pages/VendaDiretaSobre";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -46,6 +54,14 @@ function Router() {
       <Route path={"/favoritos"} component={Favoritos} />
       <Route path={"/pesquisas-salvas"} component={PesquisasSalvas} />
       <Route path={"/alerta-veiculos"} component={AlertaVeiculos} />
+      <Route path={"/leiloes-hoje"} component={LeiloesHoje} />
+      <Route path={"/calendario-leiloes"} component={CalendarioLeiloes} />
+      <Route path={"/como-comprar"} component={ComoComprar} />
+      <Route path={"/perguntas-comuns"} component={PerguntasComuns} />
+      <Route path={"/videos"} component={Videos} />
+      <Route path={"/precisa-ajuda"} component={PrecisaAjuda} />
+      <Route path={"/venda-direta/ofertas"} component={VendaDiretaOfertas} />
+      <Route path={"/venda-direta/sobre"} component={VendaDiretaSobre} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
