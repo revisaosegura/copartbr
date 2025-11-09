@@ -20,6 +20,10 @@ import Registrar from "./pages/Registrar";
 import Entrar from "./pages/Entrar";
 import VehicleDetail from "./pages/VehicleDetail";
 import Admin from "./pages/Admin";
+import ListaVendas from "./pages/ListaVendas";
+import Favoritos from "./pages/Favoritos";
+import PesquisasSalvas from "./pages/PesquisasSalvas";
+import AlertaVeiculos from "./pages/AlertaVeiculos";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -38,6 +42,10 @@ function Router() {
       <Route path={"/entrar"} component={Entrar} />
       <Route path={"/veiculo/:id"} component={VehicleDetail} />
       <Route path={"/admin"} component={Admin} />
+      <Route path={"/lista-vendas"} component={ListaVendas} />
+      <Route path={"/favoritos"} component={Favoritos} />
+      <Route path={"/pesquisas-salvas"} component={PesquisasSalvas} />
+      <Route path={"/alerta-veiculos"} component={AlertaVeiculos} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

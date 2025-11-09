@@ -1,4 +1,4 @@
-import { Search, Globe, Menu, X } from "lucide-react";
+import { Search, Globe, Menu, X, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -7,6 +7,8 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showLoginMenu, setShowLoginMenu] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   return (
     <header className="bg-[#003087] text-white">
@@ -68,11 +70,25 @@ export default function Header() {
               Registrar
             </Button>
           </Link>
-          <Link href="/entrar">
-            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-[#003087]">
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              className="border-white text-white hover:bg-white hover:text-[#003087]"
+              onClick={() => setShowLoginMenu(!showLoginMenu)}
+            >
               Entrar
             </Button>
-          </Link>
+            {showLoginMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white text-gray-900 rounded shadow-lg z-50">
+                <Link href="/entrar?tipo=comprador" className="block px-4 py-2 hover:bg-gray-100">
+                  Comprador/Arrematante
+                </Link>
+                <Link href="/entrar?tipo=comitente" className="block px-4 py-2 hover:bg-gray-100">
+                  Comitente
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -92,6 +108,9 @@ export default function Header() {
             <ul className="space-y-2">
               <li>
                 <Link href="/" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Início</Link>
+              </li>
+              <li>
+                <Link href="/como-funciona" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Como Funciona</Link>
               </li>
               <li>
                 <Link href="/encontrar-veiculo" className="block px-4 py-2 hover:bg-[#003087] transition-colors">Encontrar um Veículo</Link>
@@ -139,35 +158,110 @@ export default function Header() {
                 Como Funciona
               </Link>
             </li>
-            <li>
-              <Link href="/encontrar-veiculo" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+            <li 
+              className="relative"
+              onMouseEnter={() => setActiveDropdown('encontrar')}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
+              <div className="flex items-center px-4 py-3 hover:bg-[#003087] transition-colors cursor-pointer">
                 Encontrar um Veículo
-              </Link>
+                <ChevronDown size={16} className="ml-1" />
+              </div>
+              {activeDropdown === 'encontrar' && (
+                <div className="absolute left-0 mt-0 w-56 bg-[#002366] shadow-lg z-50 border-t-2 border-[#FDB714]">
+                  <Link href="/encontrar-veiculo" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Localizador de Veículos
+                  </Link>
+                  <Link href="/lista-vendas" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Lista de Vendas
+                  </Link>
+                  <Link href="/favoritos" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Favoritos
+                  </Link>
+                  <Link href="/pesquisas-salvas" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Pesquisas Salvas
+                  </Link>
+                  <Link href="/alerta-veiculos" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Alerta de Veículos
+                  </Link>
+                </div>
+              )}
             </li>
-            <li>
-              <Link href="/leiloes" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+            <li 
+              className="relative"
+              onMouseEnter={() => setActiveDropdown('leiloes')}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
+              <div className="flex items-center px-4 py-3 hover:bg-[#003087] transition-colors cursor-pointer">
                 Leilões
-              </Link>
+                <ChevronDown size={16} className="ml-1" />
+              </div>
+              {activeDropdown === 'leiloes' && (
+                <div className="absolute left-0 mt-0 w-56 bg-[#002366] shadow-lg z-50 border-t-2 border-[#FDB714]">
+                  <Link href="/leiloes-hoje" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Leilões de Hoje
+                  </Link>
+                  <Link href="/calendario-leiloes" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Calendário de Leilões
+                  </Link>
+                </div>
+              )}
             </li>
             <li>
               <Link href="/localizacoes" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
                 Localizações
               </Link>
             </li>
-            <li>
-              <Link href="/suporte" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+            <li 
+              className="relative"
+              onMouseEnter={() => setActiveDropdown('suporte')}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
+              <div className="flex items-center px-4 py-3 hover:bg-[#003087] transition-colors cursor-pointer">
                 Suporte
-              </Link>
+                <ChevronDown size={16} className="ml-1" />
+              </div>
+              {activeDropdown === 'suporte' && (
+                <div className="absolute left-0 mt-0 w-56 bg-[#002366] shadow-lg z-50 border-t-2 border-[#FDB714]">
+                  <Link href="/como-comprar" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Como Comprar
+                  </Link>
+                  <Link href="/perguntas-comuns" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Perguntas Comuns
+                  </Link>
+                  <Link href="/videos" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Vídeos
+                  </Link>
+                  <Link href="/precisa-ajuda" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Precisa de Ajuda?
+                  </Link>
+                </div>
+              )}
             </li>
             <li>
               <Link href="/vender-meu-carro" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
                 Vender Meu Carro
               </Link>
             </li>
-            <li>
-              <Link href="/venda-direta" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
+            <li 
+              className="relative"
+              onMouseEnter={() => setActiveDropdown('venda-direta')}
+              onMouseLeave={() => setActiveDropdown(null)}
+            >
+              <div className="flex items-center px-4 py-3 hover:bg-[#003087] transition-colors cursor-pointer">
                 Venda Direta
-              </Link>
+                <ChevronDown size={16} className="ml-1" />
+              </div>
+              {activeDropdown === 'venda-direta' && (
+                <div className="absolute left-0 mt-0 w-56 bg-[#002366] shadow-lg z-50 border-t-2 border-[#FDB714]">
+                  <Link href="/venda-direta/ofertas" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    Veja as Ofertas
+                  </Link>
+                  <Link href="/venda-direta/sobre" className="block px-4 py-2 hover:bg-[#003087] transition-colors">
+                    O que é Venda Direta?
+                  </Link>
+                </div>
+              )}
             </li>
             <li>
               <Link href="/achar-pecas" className="block px-4 py-3 hover:bg-[#003087] transition-colors">
