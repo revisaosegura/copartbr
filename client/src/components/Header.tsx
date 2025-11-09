@@ -54,13 +54,27 @@ export default function Header() {
               <span className="text-sm">BRAZIL | Português</span>
             </button>
             {showLanguageMenu && (
-              <div className="absolute right-0 mt-2 w-48 bg-white text-gray-900 rounded shadow-lg z-50">
+              <div className="absolute right-0 mt-2 w-64 bg-white text-gray-900 rounded shadow-lg z-50">
                 <div className="p-4">
                   <p className="font-semibold mb-2">Idioma do Website</p>
-                  <select className="w-full p-2 border rounded">
+                  <select className="w-full p-2 border rounded mb-4">
                     <option>Português</option>
                     <option>English</option>
                   </select>
+                  <p className="font-semibold mb-2">Região do Website</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded">USA</button>
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded">CANADA</button>
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded">UK</button>
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded">IRELAND</button>
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded">UAE(Dubai)</button>
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded">BAHRAIN</button>
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded">OMAN</button>
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded">GERMANY</button>
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded">SPAIN</button>
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded">FINLAND</button>
+                    <button className="px-3 py-2 text-left hover:bg-gray-100 rounded font-semibold bg-gray-100">BRAZIL</button>
+                  </div>
                 </div>
               </div>
             )}
