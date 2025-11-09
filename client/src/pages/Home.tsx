@@ -313,6 +313,32 @@ export default function Home() {
             </p>
           </div>
         </section>
+
+        {/* Nossos Parceiros */}
+        <section className="py-16 bg-gray-50">
+          <div className="container">
+            <h2 className="text-4xl font-bold text-center text-[#003087] mb-12">
+              Nossos Parceiros
+            </h2>
+            <div className="flex items-center justify-center gap-8 flex-wrap">
+              <div className="bg-white p-6 rounded shadow hover:shadow-lg transition-shadow">
+                <img src="/partner1.png" alt="Parceiro 1" className="h-16 grayscale hover:grayscale-0 transition-all" />
+              </div>
+              <div className="bg-white p-6 rounded shadow hover:shadow-lg transition-shadow">
+                <img src="/partner2.png" alt="Parceiro 2" className="h-16 grayscale hover:grayscale-0 transition-all" />
+              </div>
+              <div className="bg-white p-6 rounded shadow hover:shadow-lg transition-shadow">
+                <img src="/partner3.png" alt="Parceiro 3" className="h-16 grayscale hover:grayscale-0 transition-all" />
+              </div>
+              <div className="bg-white p-6 rounded shadow hover:shadow-lg transition-shadow">
+                <img src="/partner4.png" alt="Parceiro 4" className="h-16 grayscale hover:grayscale-0 transition-all" />
+              </div>
+              <div className="bg-white p-6 rounded shadow hover:shadow-lg transition-shadow">
+                <img src="/partner5.png" alt="Parceiro 5" className="h-16 grayscale hover:grayscale-0 transition-all" />
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       <Footer />
