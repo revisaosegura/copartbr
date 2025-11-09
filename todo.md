@@ -196,3 +196,15 @@
 - [ ] Ajustar tipografia para ser idêntica
 - [ ] Replicar espaçamentos e margens
 - [ ] Garantir responsividade idêntica
+
+## Melhorias Solicitadas
+- [x] Atualizar página inicial para ficar 100% idêntica ao original
+- [x] Adicionar cards "Venda Direta" e "Leilão" com checkboxes
+- [x] Implementar seção "Veículos em destaque" com dados reais
+- [x] Adicionar seção "Mais opções, mais vantagens" com 3 cards
+- [x] Adicionar seção "Quem é a Copart?"
+- [x] Adicionar seção de categorias (Venda Direta, Automóveis, Caminhões, Motocicletas)
+- [x] Conectar listagem de veículos aos dados reais do Apify
+- [x] Implementar filtros funcionais na listagem
+- [x] Implementar sistema de lances em tempo real com Socket.IO
+- [x] Adicionar notificações de lances

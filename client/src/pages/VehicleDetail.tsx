@@ -5,16 +5,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useRoute, Link } from "wouter";
 import { MapPin, Calendar, Eye, Heart } from "lucide-react";
 import { toast } from "sonner";
+import BiddingPanel from "@/components/BiddingPanel";
 
 export default function VehicleDetail() {
   const [, params] = useRoute("/veiculo/:id");
   const vehicleId = params?.id;
 
   const vehicle = {
-    id: vehicleId,
+    id: parseInt(vehicleId || "1"),
     title: "2023 FERRARI SF90 STRADALE 4.0 V8 BITURBO HIBRID",
     lotNumber: "1036018",
-    currentBid: "R$ 200.000 BRL",
+    currentBid: 20000000, // Em centavos
     location: "Leilão Pátio Porto Seguro - SP",
     year: "2023",
     brand: "Ferrari",
@@ -60,27 +61,31 @@ export default function VehicleDetail() {
                     <Heart size={20} /> Favoritar
                   </button>
                 </div>
+                {/* Informações do Leilão */}
                 <Card className="mb-6">
                   <CardContent className="p-6">
-                    <div className="text-3xl font-bold text-[#FDB714] mb-2">Lance Atual: {vehicle.currentBid}</div>
                     <div className="flex items-center gap-2 text-gray-600 mb-4">
                       <MapPin size={18} />
                       <span>{vehicle.location}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-gray-600 mb-6">
+                    <div className="flex items-center gap-2 text-gray-600 mb-4">
                       <Calendar size={18} />
                       <span>Leilão: {vehicle.auctionDate}</span>
                     </div>
-                    <div className="flex gap-3">
-                      <Button className="flex-1 bg-[#FDB714] hover:bg-[#e5a512] text-black font-semibold" onClick={() => toast.success("Lance registrado!")}>
-                        Fazer Lance
-                      </Button>
-                      <Button variant="outline" className="flex-1 border-[#003087] text-[#003087] hover:bg-[#003087] hover:text-white" onClick={() => toast.info("Compra direta disponível em breve!")}>
-                        Comprar Agora
-                      </Button>
-                    </div>
+                    <Button variant="outline" className="w-full border-[#003087] text-[#003087] hover:bg-[#003087] hover:text-white" onClick={() => toast.info("Compra direta disponível em breve!")}>
+                      Comprar Agora
+                    </Button>
                   </CardContent>
                 </Card>
+                
+                {/* Painel de Lances em Tempo Real */}
+                <div className="mb-6">
+                  <BiddingPanel 
+                    vehicleId={vehicle.id} 
+                    currentBid={vehicle.currentBid}
+                    minBidIncrement={50000} // R$ 500,00 em centavos
+                  />
+                </div>
                 <Card>
                   <CardContent className="p-6">
                     <h3 className="text-2xl font-bold text-[#003087] mb-4">Especificações</h3>

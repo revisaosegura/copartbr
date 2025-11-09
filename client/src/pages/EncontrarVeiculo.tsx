@@ -15,9 +15,21 @@ export default function EncontrarVeiculo() {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Buscar veículos do backend
-  // Mock de veículos enquanto a API não está disponível
-  const vehicles: any[] = [];
-  const isLoading = false;
+  const { data: vehicles, isLoading } = trpc.admin.vehicles.list.useQuery();
+  
+  // Aplicar filtros
+  const filteredVehicles = vehicles?.filter(vehicle => {
+    if (selectedMakes.length > 0 && vehicle.brand && !selectedMakes.includes(vehicle.brand)) return false;
+    if (selectedYears.length > 0 && vehicle.year && !selectedYears.includes(vehicle.year.toString())) return false;
+    if (selectedConditions.length > 0 && vehicle.condition && !selectedConditions.includes(vehicle.condition)) return false;
+    return true;
+  }) || [];
+  
+  // Paginar resultados filtrados
+  const paginatedVehicles = filteredVehicles.slice(
+    (currentPage - 1) * resultsPerPage,
+    currentPage * resultsPerPage
+  );
 
   const totalVehicles = vehicles?.length || 0;
   const totalPages = Math.ceil(totalVehicles / resultsPerPage);
@@ -236,14 +248,14 @@ export default function EncontrarVeiculo() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {vehicles && vehicles.length > 0 ? (
-                    vehicles.map((vehicle: any) => (
+                  {paginatedVehicles && paginatedVehicles.length > 0 ? (
+                    paginatedVehicles.map((vehicle) => (
                       <div key={vehicle.id} className="bg-white rounded shadow-md p-4 flex gap-4 hover:shadow-lg transition-shadow">
                         {/* Imagem do Veículo */}
                         <div className="w-48 h-36 flex-shrink-0">
                           <img
-                            src={vehicle.images?.[0] || "/placeholder-car.jpg"}
-                            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+                            src={vehicle.image || "/placeholder-car.jpg"}
+                            alt={`${vehicle.year} ${vehicle.brand} ${vehicle.model}`}
                             className="w-full h-full object-cover rounded"
                           />
                         </div>
@@ -261,7 +273,7 @@ export default function EncontrarVeiculo() {
                             </div>
                             <div>
                               <span className="font-semibold">Marca:</span>
-                              <p>{vehicle.make}</p>
+                              <p>{vehicle.brand}</p>
                             </div>
                             <div>
                               <span className="font-semibold">Modelo:</span>
@@ -286,8 +298,8 @@ export default function EncontrarVeiculo() {
                                 </p>
                               </div>
                               <div>
-                                <span className="text-xs text-gray-600">Data do Leilão:</span>
-                                <p className="text-sm">{new Date(vehicle.auctionDate).toLocaleDateString('pt-BR')}</p>
+                                <span className="text-xs text-gray-600">Data de Atualização:</span>
+                                <p className="text-sm">{new Date(vehicle.updatedAt).toLocaleDateString('pt-BR')}</p>
                               </div>
                             </div>
 

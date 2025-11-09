@@ -69,6 +69,14 @@ async function startServer() {
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
     
+    // Configurar Socket.IO para lances em tempo real
+    import('../socket').then(({ setupSocketIO }) => {
+      setupSocketIO(server);
+      console.log('[Socket.IO] Sistema de lances em tempo real inicializado');
+    }).catch(error => {
+      console.error('[Socket.IO] Erro ao inicializar:', error);
+    });
+    
     // Iniciar scheduler de sincronização automática
     import('../scheduler').then(({ setupVehicleSyncScheduler }) => {
       setupVehicleSyncScheduler();
