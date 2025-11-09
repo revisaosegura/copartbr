@@ -138,3 +138,16 @@
 
 ## Logo
 - [x] Adicionar logo da Copart no header
+
+## Integração APIs de Leilão
+- [x] Analisar API auction-api.app
+- [x] Analisar API Apify
+- [x] Testar endpoints das APIs
+- [x] Criar serviço de integração Apify no backend
+- [x] Adicionar token Apify nas variáveis de ambiente
+- [x] Implementar função de busca de dados do Apify
+- [x] Implementar processamento e salvamento de veículos
+- [x] Sincronizar imagens dos veículos
+- [x] Configurar cron job para atualização a cada 4 horas
+- [x] Atualizar frontend para usar dados reais
+- [x] Testar sincronização completa

@@ -244,3 +244,12 @@ export async function getDashboardStats() {
     todayVisitors: todayStats?.uniqueVisitors || 0,
   };
 }
+
+// Sync logs
+export async function getSyncLogs(limit: number = 50) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(syncLogs)
+    .orderBy(desc(syncLogs.createdAt))
+    .limit(limit);
+}

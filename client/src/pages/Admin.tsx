@@ -7,6 +7,46 @@ import Footer from "@/components/Footer";
 import { BarChart3, Car, Eye, Users, Activity, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
+import { RefreshCw } from "lucide-react";
+import { toast } from "sonner";
+import { useState } from "react";
+
+function SyncButton() {
+  const [syncing, setSyncing] = useState(false);
+  const syncMutation = trpc.admin.sync.syncNow.useMutation();
+  const utils = trpc.useUtils();
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const result = await syncMutation.mutateAsync();
+      if (result.success) {
+        toast.success(`Sincronização concluída! ${result.vehiclesAdded} adicionados, ${result.vehiclesUpdated} atualizados`);
+        // Atualizar dados
+        utils.admin.vehicles.list.invalidate();
+        utils.admin.stats.invalidate();
+        utils.admin.sync.getLogs.invalidate();
+      } else {
+        toast.error(`Erro na sincronização: ${result.error}`);
+      }
+    } catch (error) {
+      toast.error('Erro ao executar sincronização');
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  return (
+    <Button
+      onClick={handleSync}
+      disabled={syncing}
+      className="bg-[#003087] hover:bg-[#002366]"
+    >
+      <RefreshCw className={`mr-2 h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+      {syncing ? 'Sincronizando...' : 'Sincronizar Agora'}
+    </Button>
+  );
+}
 
 export default function Admin() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -41,7 +81,7 @@ export default function Admin() {
   }
 
   const { data: stats, isLoading: statsLoading } = trpc.admin.stats.useQuery();
-  const { data: syncLogs, isLoading: logsLoading } = trpc.admin.syncLogs.useQuery({ limit: 10 });
+  const { data: syncLogs, isLoading: logsLoading } = trpc.admin.sync.getLogs.useQuery({ limit: 10 });
   const { data: vehicles, isLoading: vehiclesLoading } = trpc.admin.vehicles.list.useQuery();
 
   if (loading || statsLoading) {
@@ -66,9 +106,12 @@ export default function Admin() {
       <main className="flex-1 py-8">
         <div className="container">
           {/* Header */}
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-[#003087] mb-2">Painel Administrativo</h1>
-            <p className="text-gray-600">Bem-vindo, {user?.name || "Administrador"}</p>
+          <div className="mb-8 flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-bold text-[#003087] mb-2">Painel Administrativo</h1>
+              <p className="text-gray-600">Bem-vindo, {user?.name || "Administrador"}</p>
+            </div>
+            <SyncButton />
           </div>
 
           {/* Statistics Cards */}

@@ -124,6 +124,28 @@ export const appRouter = router({
         }),
     }),
 
+    // Sync management
+    sync: router({      syncNow: protectedProcedure
+        .mutation(async ({ ctx }) => {
+          if (ctx.user.role !== 'admin') {
+            throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
+          }
+          const { syncVehiclesFromApify } = await import('./services/vehicleSync');
+          const result = await syncVehiclesFromApify();
+          return result;
+        }),
+
+      getLogs: protectedProcedure
+        .input(z.object({ limit: z.number().optional().default(50) }))
+        .query(async ({ ctx, input }) => {
+          if (ctx.user.role !== 'admin') {
+            throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
+          }
+          const { getSyncLogs } = await import('./db');
+          return await getSyncLogs(input.limit);
+        }),
+    }),
+
     // Settings management
     settings: router({
       list: protectedProcedure.query(async ({ ctx }) => {

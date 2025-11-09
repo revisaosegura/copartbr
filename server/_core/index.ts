@@ -68,6 +68,13 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
+    
+    // Iniciar scheduler de sincronização automática
+    import('../scheduler').then(({ setupVehicleSyncScheduler }) => {
+      setupVehicleSyncScheduler();
+    }).catch(error => {
+      console.error('[Server] Erro ao iniciar scheduler:', error);
+    });
   });
 }
 

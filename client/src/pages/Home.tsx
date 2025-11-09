@@ -5,23 +5,25 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import VehicleCard from "@/components/VehicleCard";
 import { Link } from "wouter";
-import { useEffect, useState } from "react";
-import { getFeaturedVehicles, getVehicles, updateVehiclePrices } from "@/lib/vehicleData";
+import { useEffect } from "react";
+import { trpc } from "@/lib/trpc";
 
 export default function Home() {
-  const [featuredVehicles, setFeaturedVehicles] = useState(getFeaturedVehicles(4));
-  const [totalVehicles, setTotalVehicles] = useState(getVehicles().length);
+  // Buscar veículos do backend
+  const { data: vehicles, refetch } = trpc.admin.vehicles.list.useQuery();
+  
+  // Filtrar veículos em destaque (primeiros 4)
+  const featuredVehicles = vehicles?.slice(0, 4) || [];
+  const totalVehicles = vehicles?.length || 0;
 
   useEffect(() => {
-    // Atualizar preços a cada 30 segundos
+    // Atualizar dados a cada 5 minutos
     const interval = setInterval(() => {
-      updateVehiclePrices();
-      setFeaturedVehicles(getFeaturedVehicles(4));
-      setTotalVehicles(getVehicles().length);
-    }, 30000);
+      refetch();
+    }, 300000); // 5 minutos
 
     return () => clearInterval(interval);
-  }, []);
+  }, [refetch]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -150,7 +152,15 @@ export default function Home() {
             <h2 className="text-4xl font-bold text-[#003087] mb-8">Veículos em destaque</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredVehicles.map((vehicle) => (
-                <VehicleCard key={vehicle.id} {...vehicle} />
+                <VehicleCard
+                  key={vehicle.id}
+                  id={vehicle.id.toString()}
+                  image={vehicle.image || '/placeholder-car.jpg'}
+                  title={vehicle.title}
+                  lotNumber={vehicle.lotNumber}
+                  currentBid={`R$ ${(vehicle.currentBid / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                  location={vehicle.location || 'Localização não disponível'}
+                />
               ))}
             </div>
           </div>
