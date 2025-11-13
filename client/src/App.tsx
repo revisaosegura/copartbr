@@ -20,6 +20,7 @@ import Registrar from "./pages/Registrar";
 import Entrar from "./pages/Entrar";
 import VehicleDetail from "./pages/VehicleDetail";
 import Admin from "./pages/Admin";
+import AdminLogin from "./pages/AdminLogin";
 import ListaVendas from "./pages/ListaVendas";
 import Favoritos from "./pages/Favoritos";
 import PesquisasSalvas from "./pages/PesquisasSalvas";
@@ -50,6 +51,7 @@ function Router() {
       <Route path={"/registrar"} component={Registrar} />
       <Route path={"/entrar"} component={Entrar} />
       <Route path={"/veiculo/:id"} component={VehicleDetail} />
+      <Route path={"/admin/login"} component={AdminLogin} />
       <Route path={"/admin"} component={Admin} />
       <Route path={"/lista-vendas"} component={ListaVendas} />
       <Route path={"/favoritos"} component={Favoritos} />

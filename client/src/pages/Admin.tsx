@@ -10,9 +10,31 @@ import Footer from "@/components/Footer";
 import { BarChart3, Car, Eye, Users, Activity, AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
 import { getLoginUrl } from "@/const";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, LogOut } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+function LogoutButton() {
+  const [, setLocation] = useLocation();
+
+  const handleLogout = () => {
+    localStorage.removeItem("admin_authenticated");
+    localStorage.removeItem("admin_username");
+    toast.success("Logout realizado com sucesso!");
+    setLocation("/admin/login");
+  };
+
+  return (
+    <Button
+      onClick={handleLogout}
+      variant="outline"
+      className="border-red-500 text-red-500 hover:bg-red-50"
+    >
+      <LogOut className="mr-2 h-4 w-4" />
+      Sair
+    </Button>
+  );
+}
 
 function SyncButton() {
   const [syncing, setSyncing] = useState(false);
@@ -52,46 +74,50 @@ function SyncButton() {
 }
 
 export default function Admin() {
-  const { user, loading, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  // Redirect to login if not authenticated
-  if (!loading && !isAuthenticated) {
-    window.location.href = getLoginUrl();
-    return null;
-  }
+  // Todos os hooks devem ser chamados no topo (regra dos hooks)
+  const { data: stats, isLoading: statsLoading } = trpc.admin.stats.useQuery(undefined, { enabled: isAuthenticated });
+  const { data: syncLogs, isLoading: logsLoading } = trpc.admin.sync.getLogs.useQuery({ limit: 10 }, { enabled: isAuthenticated });
+  const { data: vehicles, isLoading: vehiclesLoading } = trpc.admin.vehicles.list.useQuery(undefined, { enabled: isAuthenticated });
+  const { data: usersData, isLoading: usersLoading } = trpc.admin.users.list.useQuery(undefined, { enabled: isAuthenticated });
+  
+  // Analytics data
+  const { data: userGrowth, isLoading: userGrowthLoading } = trpc.admin.analytics.userGrowth.useQuery({ days: 30 }, { enabled: isAuthenticated });
+  const { data: mostViewed, isLoading: mostViewedLoading } = trpc.admin.analytics.mostViewedVehicles.useQuery({ limit: 10 }, { enabled: isAuthenticated });
+  const { data: bidStats, isLoading: bidStatsLoading } = trpc.admin.analytics.bidStatistics.useQuery(undefined, { enabled: isAuthenticated });
 
-  // Check if user is admin
-  if (!loading && user?.role !== "admin") {
+  // Verificar autenticação no localStorage
+  useEffect(() => {
+    const authenticated = localStorage.getItem("admin_authenticated") === "true";
+    
+    if (!authenticated) {
+      setLocation("/admin/login");
+    } else {
+      setIsAuthenticated(true);
+    }
+    
+    setLoading(false);
+  }, [setLocation]);
+
+  // Mostrar loading enquanto verifica autenticação
+  if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 flex items-center justify-center">
-          <Card className="max-w-md">
-            <CardContent className="p-8 text-center">
-              <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Acesso Negado</h2>
-              <p className="text-gray-600 mb-4">
-                Você não tem permissão para acessar o painel administrativo.
-              </p>
-              <Button onClick={() => setLocation("/")}>Voltar para Home</Button>
-            </CardContent>
-          </Card>
-        </main>
-        <Footer />
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#003087] mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando autenticação...</p>
+        </div>
       </div>
     );
   }
 
-  const { data: stats, isLoading: statsLoading } = trpc.admin.stats.useQuery();
-  const { data: syncLogs, isLoading: logsLoading } = trpc.admin.sync.getLogs.useQuery({ limit: 10 });
-  const { data: vehicles, isLoading: vehiclesLoading } = trpc.admin.vehicles.list.useQuery();
-  const { data: usersData, isLoading: usersLoading } = trpc.admin.users.list.useQuery();
-  
-  // Analytics data
-  const { data: userGrowth, isLoading: userGrowthLoading } = trpc.admin.analytics.userGrowth.useQuery({ days: 30 });
-  const { data: mostViewed, isLoading: mostViewedLoading } = trpc.admin.analytics.mostViewedVehicles.useQuery({ limit: 10 });
-  const { data: bidStats, isLoading: bidStatsLoading } = trpc.admin.analytics.bidStatistics.useQuery();
+  // Se não autenticado, não renderizar nada (já foi redirecionado)
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (loading || statsLoading) {
     return (
@@ -118,9 +144,12 @@ export default function Admin() {
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold text-[#003087] mb-2">Painel Administrativo</h1>
-              <p className="text-gray-600">Bem-vindo, {user?.name || "Administrador"}</p>
+              <p className="text-gray-600">Bem-vindo, Administrador</p>
             </div>
-            <SyncButton />
+            <div className="flex gap-3">
+              <LogoutButton />
+              <SyncButton />
+            </div>
           </div>
 
           {/* Statistics Cards */}

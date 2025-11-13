@@ -324,3 +324,12 @@
 - [x] Identificar tags <a> aninhadas na página inicial
 - [x] Corrigir estrutura HTML para remover aninhamento
 - [x] Testar correção no navegador
+
+## Autenticação Admin
+- [x] Criar página de login do admin (/admin/login)
+- [x] Implementar validação de credenciais (copart2025 / Copart2025)
+- [x] Adicionar proteção de rota no painel admin
+- [x] Implementar sistema de sessão com localStorage
+- [x] Adicionar botão de logout no admin
+- [x] Testar fluxo completo de autenticação
+- [x] Enviar para GitHub
