@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import type { Server as HTTPServer } from "http";
-import { createNotification } from "./db";
+import { createNotification, getVehicleById } from "./db";
 
 export function setupSocketIO(httpServer: HTTPServer) {
   const io = new Server(httpServer, {
@@ -33,14 +33,22 @@ export function setupSocketIO(httpServer: HTTPServer) {
     });
 
     // Receber novo lance
-    socket.on("place-bid", (data: { vehicleId: number; userId: string; amount: number; userName: string }) => {
+    socket.on("place-bid", async (data: { vehicleId: number; userId: string; amount: number; userName: string }) => {
       const { vehicleId, userId, amount, userName } = data;
       
       // Validar lance (deve ser maior que o lance atual, sem restrição de incremento mínimo)
       const currentBids = activeBids.get(vehicleId) || [];
-      const highestBid = currentBids.length > 0 
-        ? Math.max(...currentBids.map(b => b.amount))
-        : 0;
+      let highestBid = 0;
+      
+      if (currentBids.length > 0) {
+        highestBid = Math.max(...currentBids.map(b => b.amount));
+      } else {
+        // Se não houver lances, buscar o currentBid do veículo
+        const vehicle = await getVehicleById(vehicleId);
+        if (vehicle) {
+          highestBid = vehicle.currentBid;
+        }
+      }
 
       // Permitir qualquer lance maior que o atual (sem incremento mínimo)
       if (amount <= highestBid) {

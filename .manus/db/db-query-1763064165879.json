@@ -1,0 +1,9 @@
+{
+  "query": "UPDATE vehicles SET year = 2025 WHERE active = 1 AND year < 2025",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2nvorDkh6VFqXwH.root --database gmyjLqHAQqVDyh7t2S4HiF --execute UPDATE vehicles SET year = 2025 WHERE active = 1 AND year < 2025",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 74
+}

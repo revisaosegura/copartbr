@@ -292,3 +292,10 @@
 - [x] Implementar sistema de preferências de notificações
 - [x] Adicionar notificações em tempo real via Socket.IO
 - [x] Testar sistema completo de notificações
+
+## Correções Sistema de Lances e Datas
+- [x] Corrigir lógica de lances para usar currentBid do veículo como base
+- [x] Ajustar BiddingPanel para mostrar lance atual correto quando não houver lances
+- [x] Corrigir contador de lances
+- [x] Atualizar anos dos veículos para 2025
+- [x] Testar sistema de lances corrigido

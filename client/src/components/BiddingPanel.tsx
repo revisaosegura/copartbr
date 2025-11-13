@@ -48,6 +48,9 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
       if (history.length > 0) {
         const highest = Math.max(...history.map(b => b.amount));
         setHighestBid(highest);
+      } else {
+        // Se não houver lances, usar o currentBid do veículo
+        setHighestBid(currentBid);
       }
     });
 
