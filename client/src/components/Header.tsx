@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { useDebounce } from "@/hooks/useDebounce";
+import NotificationBell from "@/components/NotificationBell";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -189,6 +190,7 @@ export default function Header() {
               </div>
             )}
           </div>
+          <NotificationBell />
           <Link href="/registrar">
             <Button variant="outline" className="bg-[#FDB714] hover:bg-[#e5a512] text-black border-none font-semibold">
               Registrar

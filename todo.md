@@ -280,3 +280,15 @@
 - [x] Remover restrição de lance mínimo
 - [x] Permitir qualquer valor de lance desejado pelo usuário
 - [x] Testar sistema de lances ajustado
+
+## Sistema de Notificações Personalizadas
+- [x] Criar componente NotificationCenter para exibir notificações
+- [x] Implementar NotificationBell no header com contador
+- [x] Criar schema de notificações no banco de dados
+- [x] Implementar backend tRPC para gerenciar notificações
+- [x] Adicionar notificações para novos lances em veículos favoritos
+- [x] Adicionar notificações para veículos salvos que tiveram alteração de preço
+- [x] Adicionar notificações para leilões próximos
+- [x] Implementar sistema de preferências de notificações
+- [x] Adicionar notificações em tempo real via Socket.IO
+- [x] Testar sistema completo de notificações

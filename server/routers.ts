@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
-import { getDashboardStats, getRecentSyncLogs, getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle, getAllSettings, upsertSetting } from "./db";
+import { getDashboardStats, getRecentSyncLogs, getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle, getAllSettings, upsertSetting, getUserNotifications, getUnreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead, createNotification } from "./db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { NOT_ADMIN_ERR_MSG } from "@shared/const";
@@ -206,6 +206,44 @@ export const appRouter = router({
           return { success: true };
         }),
     }),
+  }),
+
+  // Notifications
+  notifications: router({
+    getAll: protectedProcedure
+      .input(z.object({ limit: z.number().optional().default(20) }))
+      .query(async ({ ctx, input }) => {
+        return await getUserNotifications(ctx.user.id, input.limit);
+      }),
+
+    getUnreadCount: protectedProcedure.query(async ({ ctx }) => {
+      return await getUnreadNotificationsCount(ctx.user.id);
+    }),
+
+    markAsRead: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await markNotificationAsRead(input.id);
+        return { success: true };
+      }),
+
+    markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
+      await markAllNotificationsAsRead(ctx.user.id);
+      return { success: true };
+    }),
+
+    create: protectedProcedure
+      .input(z.object({
+        userId: z.number(),
+        type: z.enum(["new_bid", "price_change", "auction_reminder", "favorite_update", "system"]),
+        title: z.string(),
+        message: z.string(),
+        vehicleId: z.number().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await createNotification(input);
+        return { success: true };
+      }),
   }),
 });
 

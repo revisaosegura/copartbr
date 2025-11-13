@@ -148,3 +148,20 @@ export const bids = mysqlTable("bids", {
 
 export type Bid = typeof bids.$inferSelect;
 export type InsertBid = typeof bids.$inferInsert;
+
+/**
+ * Notifications table - stores user notifications
+ */
+export const notifications = mysqlTable("notifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  type: mysqlEnum("type", ["new_bid", "price_change", "auction_reminder", "favorite_update", "system"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  message: text("message").notNull(),
+  vehicleId: int("vehicleId"), // Opcional - referência ao veículo relacionado
+  read: int("read").default(0).notNull(), // 0 = não lida, 1 = lida
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;

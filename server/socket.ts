@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import type { Server as HTTPServer } from "http";
+import { createNotification } from "./db";
 
 export function setupSocketIO(httpServer: HTTPServer) {
   const io = new Server(httpServer, {
@@ -73,6 +74,10 @@ export function setupSocketIO(httpServer: HTTPServer) {
         totalBids: activeBids.get(vehicleId)!.length
       });
 
+      // Criar notificação para usuários interessados (exemplo: favoritos)
+      // Nota: Em produção, buscar usuários que favoritaram este veículo
+      // e criar notificação para cada um
+      
       console.log(`[Socket.IO] Novo lance: R$ ${amount} no veículo ${vehicleId} por ${userName}`);
     });
 

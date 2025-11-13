@@ -1,6 +1,6 @@
 import { eq, desc, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, vehicles, priceHistory, syncLogs, siteSettings, siteStats, InsertVehicle, InsertPriceHistory, InsertSyncLog, InsertSiteSetting, InsertSiteStats } from "../drizzle/schema";
+import { InsertUser, users, vehicles, priceHistory, syncLogs, siteSettings, siteStats, notifications, InsertVehicle, InsertPriceHistory, InsertSyncLog, InsertSiteSetting, InsertSiteStats, InsertNotification } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -315,4 +315,44 @@ export async function getVehicleCount() {
     .where(eq(vehicles.active, 1));
   
   return Number(result?.count || 0);
+}
+
+
+// Notification functions
+export async function createNotification(notification: InsertNotification) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(notifications).values(notification);
+}
+
+export async function getUserNotifications(userId: number, limit: number = 20) {
+  const db = await getDb();
+  if (!db) return [];
+  return await db.select().from(notifications)
+    .where(eq(notifications.userId, userId))
+    .orderBy(desc(notifications.createdAt))
+    .limit(limit);
+}
+
+export async function getUnreadNotificationsCount(userId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const [result] = await db.select({ count: sql<number>`count(*)` })
+    .from(notifications)
+    .where(sql`${notifications.userId} = ${userId} AND ${notifications.read} = 0`);
+  
+  return Number(result?.count || 0);
+}
+
+export async function markNotificationAsRead(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(notifications).set({ read: 1 }).where(eq(notifications.id, id));
+}
+
+export async function markAllNotificationsAsRead(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.update(notifications).set({ read: 1 }).where(eq(notifications.userId, userId));
 }
