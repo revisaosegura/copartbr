@@ -32,6 +32,7 @@ import Videos from "./pages/Videos";
 import PrecisaAjuda from "./pages/PrecisaAjuda";
 import VendaDiretaOfertas from "./pages/VendaDiretaOfertas";
 import VendaDiretaSobre from "./pages/VendaDiretaSobre";
+import Buscar from "./pages/Buscar";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -62,6 +63,7 @@ function Router() {
       <Route path={"/precisa-ajuda"} component={PrecisaAjuda} />
       <Route path={"/venda-direta/ofertas"} component={VendaDiretaOfertas} />
       <Route path={"/venda-direta/sobre"} component={VendaDiretaSobre} />
+      <Route path={"/buscar"} component={Buscar} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

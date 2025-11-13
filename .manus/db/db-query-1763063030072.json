@@ -1,0 +1,50 @@
+{
+  "query": "SELECT id, lotNumber, title, brand, model, year FROM vehicles WHERE active = 1 LIMIT 5",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2nvorDkh6VFqXwH.root --database gmyjLqHAQqVDyh7t2S4HiF --execute SELECT id, lotNumber, title, brand, model, year FROM vehicles WHERE active = 1 LIMIT 5",
+  "rows": [
+    {
+      "id": "1",
+      "lotNumber": "91121855",
+      "title": "2024 KIA SOUL LX",
+      "brand": "KIA",
+      "model": "SOUL",
+      "year": "2024"
+    },
+    {
+      "id": "2",
+      "lotNumber": "90898725",
+      "title": "2023 JEEP COMPASS LIMITED",
+      "brand": "JEEP",
+      "model": "COMPASS",
+      "year": "2023"
+    },
+    {
+      "id": "3",
+      "lotNumber": "90114395",
+      "title": "2018 CHEVROLET SILVERADO C1500 LTZ",
+      "brand": "CHEVROLET",
+      "model": "SILVERADO",
+      "year": "2018"
+    },
+    {
+      "id": "4",
+      "lotNumber": "90087595",
+      "title": "2024 FORD ESCAPE ST LINE SELECT",
+      "brand": "FORD",
+      "model": "ESCAPE",
+      "year": "2024"
+    },
+    {
+      "id": "5",
+      "lotNumber": "89879925",
+      "title": "2017 FORD TRANSIT T-350",
+      "brand": "FORD",
+      "model": "TRANSIT",
+      "year": "2017"
+    }
+  ],
+  "messages": [],
+  "stdout": "id\tlotNumber\ttitle\tbrand\tmodel\tyear\n1\t91121855\t2024 KIA SOUL LX\tKIA\tSOUL\t2024\n2\t90898725\t2023 JEEP COMPASS LIMITED\tJEEP\tCOMPASS\t2023\n3\t90114395\t2018 CHEVROLET SILVERADO C1500 LTZ\tCHEVROLET\tSILVERADO\t2018\n4\t90087595\t2024 FORD ESCAPE ST LINE SELECT\tFORD\tESCAPE\t2024\n5\t89879925\t2017 FORD TRANSIT T-350\tFORD\tTRANSIT\t2017\n",
+  "stderr": "",
+  "execution_time_ms": 60
+}

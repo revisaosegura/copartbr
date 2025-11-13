@@ -1,7 +1,9 @@
 import { Search, Globe, Menu, X, ChevronDown } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { trpc } from "@/lib/trpc";
+import { useDebounce } from "@/hooks/useDebounce";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -9,6 +11,49 @@ export default function Header() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [, setLocation] = useLocation();
+  const searchRef = useRef<HTMLDivElement>(null);
+  
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  
+  const { data: searchResults, isLoading } = trpc.vehicles.search.useQuery(
+    { query: debouncedSearchQuery, limit: 5 },
+    { enabled: debouncedSearchQuery.length >= 2 }
+  );
+  
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+  useEffect(() => {
+    if (debouncedSearchQuery.length >= 2 && searchResults && searchResults.length > 0) {
+      setShowSearchResults(true);
+    } else {
+      setShowSearchResults(false);
+    }
+  }, [debouncedSearchQuery, searchResults]);
+  
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (searchQuery.trim()) {
+      setLocation(`/buscar?q=${encodeURIComponent(searchQuery)}`);
+      setShowSearchResults(false);
+    }
+  };
+  
+  const handleVehicleClick = (id: number) => {
+    setLocation(`/veiculo/${id}`);
+    setShowSearchResults(false);
+    setSearchQuery("");
+  };
 
   return (
     <header className="bg-[#003087] text-white">
@@ -28,18 +73,69 @@ export default function Header() {
 
         {/* Search Bar */}
         <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
-          <div className="relative flex items-center bg-white rounded">
+          <div className="relative flex items-center bg-white rounded" ref={searchRef}>
             <Search className="absolute left-3 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Procurar por Marca, Modelo, Descrição, Chassis ou Número do Lote"
-              className="w-full pl-10 pr-4 py-2 text-gray-900 rounded-l focus:outline-none"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Button className="bg-[#FDB714] hover:bg-[#e5a512] text-black font-semibold px-6 rounded-l-none">
-              Buscar
-            </Button>
+            <form onSubmit={handleSearch} className="flex w-full">
+              <input
+                type="text"
+                placeholder="Procurar por Marca, Modelo, Descrição, Chassis ou Número do Lote"
+                className="w-full pl-10 pr-4 py-2 text-gray-900 rounded-l focus:outline-none"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => {
+                  if (searchResults && searchResults.length > 0 && debouncedSearchQuery.length >= 2) {
+                    setShowSearchResults(true);
+                  }
+                }}
+              />
+              <Button type="submit" className="bg-[#FDB714] hover:bg-[#e5a512] text-black font-semibold px-6 rounded-l-none">
+                Buscar
+              </Button>
+            </form>
+            
+            {/* Search Results Dropdown */}
+            {showSearchResults && searchResults && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-50 max-h-96 overflow-y-auto">
+                {searchResults.map((vehicle) => (
+                  <div
+                    key={vehicle.id}
+                    className="flex items-center gap-3 p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                    onClick={() => handleVehicleClick(vehicle.id)}
+                  >
+                    {vehicle.image && (
+                      <img
+                        src={vehicle.image}
+                        alt={vehicle.title}
+                        className="w-16 h-16 object-cover rounded"
+                      />
+                    )}
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-900 text-sm">{vehicle.title}</p>
+                      <p className="text-xs text-gray-600">
+                        Lote: {vehicle.lotNumber} | {vehicle.brand} {vehicle.model} {vehicle.year}
+                      </p>
+                      <p className="text-sm text-[#003087] font-semibold mt-1">
+                        R$ {(vehicle.currentBid / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+                {searchQuery.trim() && (
+                  <div
+                    className="p-3 text-center text-sm text-[#003087] hover:bg-gray-100 cursor-pointer font-semibold"
+                    onClick={handleSearch}
+                  >
+                    Ver todos os resultados para "{searchQuery}"
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {isLoading && debouncedSearchQuery.length >= 2 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded shadow-lg z-50 p-4 text-center text-gray-600">
+                Buscando...
+              </div>
+            )}
           </div>
         </div>
 

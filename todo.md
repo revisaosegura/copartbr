@@ -263,3 +263,13 @@
 - [x] Otimizar footer para mobile
 - [x] Ajustar página de listagem para mobile (filtros responsivos, botão toggle)
 - [x] Testar em diferentes tamanhos de tela (320px, 375px, 414px)
+
+## Implementação de Busca
+- [x] Criar procedure de busca no backend (tRPC)
+- [x] Implementar busca por marca
+- [x] Implementar busca por modelo
+- [x] Implementar busca por chassis/VIN
+- [x] Implementar busca por número do lote
+- [x] Adicionar autocomplete no campo de busca do header
+- [x] Criar página de resultados de busca
+- [x] Testar busca em tempo real

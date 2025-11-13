@@ -253,3 +253,66 @@ export async function getSyncLogs(limit: number = 50) {
     .orderBy(desc(syncLogs.createdAt))
     .limit(limit);
 }
+
+// Search and filter functions
+export async function searchVehicles(query: string, limit: number = 10) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const searchTerm = `%${query}%`;
+  
+  return await db.select().from(vehicles)
+    .where(sql`
+      ${vehicles.active} = 1 AND (
+        ${vehicles.title} LIKE ${searchTerm} OR
+        ${vehicles.brand} LIKE ${searchTerm} OR
+        ${vehicles.model} LIKE ${searchTerm} OR
+        ${vehicles.lotNumber} LIKE ${searchTerm} OR
+        ${vehicles.description} LIKE ${searchTerm}
+      )
+    `)
+    .orderBy(desc(vehicles.createdAt))
+    .limit(limit);
+}
+
+export async function getFilteredVehicles(filters: {
+  brand?: string;
+  year?: number;
+  condition?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = await getDb();
+  if (!db) return [];
+  
+  const conditions = [eq(vehicles.active, 1)];
+  
+  if (filters.brand) {
+    conditions.push(eq(vehicles.brand, filters.brand));
+  }
+  
+  if (filters.year) {
+    conditions.push(eq(vehicles.year, filters.year));
+  }
+  
+  if (filters.condition) {
+    conditions.push(eq(vehicles.condition, filters.condition));
+  }
+  
+  return await db.select().from(vehicles)
+    .where(sql`${sql.join(conditions, sql` AND `)}`)
+    .orderBy(desc(vehicles.createdAt))
+    .limit(filters.limit || 20)
+    .offset(filters.offset || 0);
+}
+
+export async function getVehicleCount() {
+  const db = await getDb();
+  if (!db) return 0;
+  
+  const [result] = await db.select({ count: sql<number>`count(*)` })
+    .from(vehicles)
+    .where(eq(vehicles.active, 1));
+  
+  return Number(result?.count || 0);
+}

@@ -21,6 +21,43 @@ export const appRouter = router({
     }),
   }),
 
+  // Public vehicle search
+  vehicles: router({
+    search: publicProcedure
+      .input(z.object({
+        query: z.string().min(1),
+        limit: z.number().optional().default(10),
+      }))
+      .query(async ({ input }) => {
+        const { searchVehicles } = await import('./db');
+        return await searchVehicles(input.query, input.limit);
+      }),
+
+    list: publicProcedure
+      .input(z.object({
+        brand: z.string().optional(),
+        year: z.number().optional(),
+        condition: z.string().optional(),
+        limit: z.number().optional().default(20),
+        offset: z.number().optional().default(0),
+      }))
+      .query(async ({ input }) => {
+        const { getFilteredVehicles } = await import('./db');
+        return await getFilteredVehicles(input);
+      }),
+
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return await getVehicleById(input.id);
+      }),
+
+    count: publicProcedure.query(async () => {
+      const { getVehicleCount } = await import('./db');
+      return await getVehicleCount();
+    }),
+  }),
+
   // Admin panel routers
   admin: router({
     // Dashboard statistics
