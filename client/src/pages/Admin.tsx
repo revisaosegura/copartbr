@@ -1,7 +1,10 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { UserGrowthChart } from "@/components/analytics/UserGrowthChart";
+import { MostViewedVehicles } from "@/components/analytics/MostViewedVehicles";
+import { BidStatistics } from "@/components/analytics/BidStatistics";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { BarChart3, Car, Eye, Users, Activity, AlertCircle } from "lucide-react";
@@ -84,6 +87,11 @@ export default function Admin() {
   const { data: syncLogs, isLoading: logsLoading } = trpc.admin.sync.getLogs.useQuery({ limit: 10 });
   const { data: vehicles, isLoading: vehiclesLoading } = trpc.admin.vehicles.list.useQuery();
   const { data: usersData, isLoading: usersLoading } = trpc.admin.users.list.useQuery();
+  
+  // Analytics data
+  const { data: userGrowth, isLoading: userGrowthLoading } = trpc.admin.analytics.userGrowth.useQuery({ days: 30 });
+  const { data: mostViewed, isLoading: mostViewedLoading } = trpc.admin.analytics.mostViewedVehicles.useQuery({ limit: 10 });
+  const { data: bidStats, isLoading: bidStatsLoading } = trpc.admin.analytics.bidStatistics.useQuery();
 
   if (loading || statsLoading) {
     return (
@@ -116,7 +124,7 @@ export default function Admin() {
           </div>
 
           {/* Statistics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total de Veículos</CardTitle>
@@ -164,6 +172,16 @@ export default function Admin() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{stats?.todayVisitors || 0}</div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Usuários Cadastrados</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{usersData?.length || 0}</div>
               </CardContent>
             </Card>
           </div>
@@ -283,6 +301,20 @@ export default function Admin() {
                 )}
               </CardContent>
             </Card>
+          </div>
+
+          {/* Analytics Section */}
+          <div className="mt-8 space-y-8">
+            <h2 className="text-2xl font-bold text-[#003087]">Analytics e Estatísticas</h2>
+            
+            {/* User Growth Chart */}
+            <UserGrowthChart data={userGrowth || []} isLoading={userGrowthLoading} />
+            
+            {/* Bid Statistics */}
+            <BidStatistics data={bidStats || null} isLoading={bidStatsLoading} />
+            
+            {/* Most Viewed Vehicles */}
+            <MostViewedVehicles data={mostViewed || []} isLoading={mostViewedLoading} />
           </div>
 
           {/* Quick Actions */}

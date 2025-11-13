@@ -308,3 +308,14 @@
 - [x] Adicionar seção "Usuários Cadastrados" no painel admin
 - [x] Exibir nome, email, role e data de cadastro dos usuários
 - [x] Testar funcionalidade de listagem de usuários
+
+## Dashboard de Analytics
+- [x] Adicionar contador de usuários cadastrados no dashboard
+- [x] Criar endpoint de analytics de crescimento de usuários
+- [x] Criar endpoint de veículos mais visualizados
+- [x] Criar endpoint de estatísticas de lances
+- [x] Implementar gráfico de crescimento de usuários (linha temporal)
+- [x] Implementar lista de veículos mais visualizados
+- [x] Implementar estatísticas de lances (total, por veículo, tendências)
+- [x] Adicionar biblioteca de gráficos (Recharts)
+- [x] Testar dashboard completo

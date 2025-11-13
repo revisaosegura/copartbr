@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
-import { getDashboardStats, getRecentSyncLogs, getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle, getAllSettings, upsertSetting, getUserNotifications, getUnreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead, createNotification, getAllUsers, getUserCount } from "./db";
+import { getDashboardStats, getRecentSyncLogs, getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle, getAllSettings, upsertSetting, getUserNotifications, getUnreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead, createNotification, getAllUsers, getUserCount, getUserGrowthStats, getMostViewedVehicles, getBidStatistics } from "./db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { NOT_ADMIN_ERR_MSG } from "@shared/const";
@@ -196,6 +196,33 @@ export const appRouter = router({
           throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
         }
         return await getUserCount();
+      }),
+    }),
+
+    // Analytics
+    analytics: router({      userGrowth: protectedProcedure
+        .input(z.object({ days: z.number().optional().default(30) }))
+        .query(async ({ ctx, input }) => {
+          if (ctx.user.role !== 'admin') {
+            throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
+          }
+          return await getUserGrowthStats(input.days);
+        }),
+
+      mostViewedVehicles: protectedProcedure
+        .input(z.object({ limit: z.number().optional().default(10) }))
+        .query(async ({ ctx, input }) => {
+          if (ctx.user.role !== 'admin') {
+            throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
+          }
+          return await getMostViewedVehicles(input.limit);
+        }),
+
+      bidStatistics: protectedProcedure.query(async ({ ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
+        }
+        return await getBidStatistics();
       }),
     }),
 
