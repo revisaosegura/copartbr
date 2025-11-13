@@ -41,29 +41,29 @@ export default function Home() {
 
       <main>
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-[#002366] via-[#003087] to-[#004099] text-white py-20">
+        <section className="bg-gradient-to-br from-[#002366] via-[#003087] to-[#004099] text-white py-8 md:py-12 lg:py-20">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               {/* Left Content */}
               <div>
-                <h1 className="text-5xl font-bold mb-6 leading-tight">
+                <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold mb-4 md:mb-6 leading-tight">
                   Conectando <span className="text-[#FDB714]">compradores</span> e{" "}
                   <span className="text-[#FDB714]">vendedores</span> ao redor do mundo.
                 </h1>
-                <p className="text-xl mb-4">
+                <p className="text-base md:text-lg lg:text-xl mb-3 md:mb-4">
                   São + de <span className="text-[#FDB714] font-bold">{totalVehicles.toLocaleString("pt-BR")}</span> veículos disponíveis para compra online.
                 </p>
-                <p className="text-lg text-gray-300">
+                <p className="text-sm md:text-base lg:text-lg text-gray-300">
                   De automóveis a caminhões, motocicletas e muito mais.
                 </p>
               </div>
 
               {/* Right Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 {/* Venda Direta Card */}
                 <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                  <CardContent className="p-6">
-                    <h3 className="text-2xl font-bold text-[#FDB714] mb-4">Venda Direta</h3>
+                  <CardContent className="p-4 md:p-6">
+                    <h3 className="text-xl md:text-2xl font-bold text-[#FDB714] mb-3 md:mb-4">Venda Direta</h3>
                     <ul className="space-y-2 mb-6">
                       <li className="flex items-start gap-2">
                         <CheckCircle2 className="text-[#FDB714] mt-1 flex-shrink-0" size={20} />
@@ -103,8 +103,8 @@ export default function Home() {
 
                 {/* Leilão Card */}
                 <Card className="bg-white/10 backdrop-blur-sm border-white/20">
-                  <CardContent className="p-6">
-                    <h3 className="text-2xl font-bold text-[#FDB714] mb-4">Leilão</h3>
+                  <CardContent className="p-4 md:p-6">
+                    <h3 className="text-xl md:text-2xl font-bold text-[#FDB714] mb-3 md:mb-4">Leilão</h3>
                     <ul className="space-y-2 mb-6">
                       <li className="flex items-start gap-2">
                         <CheckCircle2 className="text-[#FDB714] mt-1 flex-shrink-0" size={20} />
@@ -147,9 +147,9 @@ export default function Home() {
         </section>
 
         {/* Veículos em Destaque */}
-        <section className="py-16 bg-gray-50">
+        <section className="py-8 md:py-12 lg:py-16 bg-gray-50">
           <div className="container">
-            <h2 className="text-4xl font-bold text-[#003087] mb-8">Veículos em destaque</h2>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#003087] mb-6 md:mb-8">Veículos em destaque</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredVehicles.map((vehicle) => (
                 <VehicleCard
@@ -167,12 +167,12 @@ export default function Home() {
         </section>
 
         {/* Mais opções, mais vantagens */}
-        <section className="py-16">
+        <section className="py-8 md:py-12 lg:py-16">
           <div className="container">
-            <h2 className="text-4xl font-bold text-center text-[#003087] mb-4">
+            <h2 className="text-xl md:text-2xl lg:text-4xl font-bold text-center text-[#003087] mb-4 px-4">
               Mais opções, mais vantagens e <span className="text-[#FDB714]">toda a segurança</span> que você procura para comprar e vender.
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mt-8 md:mt-12">
               {/* Compre nos Leilões */}
               <Card>
                 <CardContent className="p-6">

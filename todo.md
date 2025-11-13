@@ -252,3 +252,14 @@
 - [x] Verificar página de detalhes do veículo
 - [x] **CRÍTICO**: Identificado problema - Token APIFY_API_TOKEN precisa ser configurado no painel Settings → Secrets
 - [x] Testar navegação completa
+
+## Otimização Mobile
+- [x] Analisar problemas de responsividade no celular
+- [x] Ajustar header para mobile (logo menor, botões compactos)
+- [x] Otimizar hero section para mobile (tamanhos de fonte responsivos)
+- [x] Ajustar cards Venda Direta e Leilão para mobile (padding reduzido)
+- [x] Otimizar grid de veículos para mobile
+- [x] Ajustar seções de conteúdo para mobile (espaçamentos responsivos)
+- [x] Otimizar footer para mobile
+- [x] Ajustar página de listagem para mobile (filtros responsivos, botão toggle)
+- [x] Testar em diferentes tamanhos de tela (320px, 375px, 414px)

@@ -13,7 +13,7 @@ export default function Header() {
   return (
     <header className="bg-[#003087] text-white">
       {/* Top Bar */}
-      <div className="container py-3 flex items-center justify-between">
+      <div className="container py-2 md:py-3 flex items-center justify-between gap-2">
         {/* Mobile Menu Button */}
         <button
           className="lg:hidden text-white"
@@ -23,7 +23,7 @@ export default function Header() {
         </button>
         {/* Logo */}
         <Link href="/" className="flex items-center">
-          <img src="/copart-logo.png" alt="Copart" className="h-10 md:h-12" />
+          <img src="/copart-logo.png" alt="Copart" className="h-8 md:h-10 lg:h-12" />
         </Link>
 
         {/* Search Bar */}
@@ -43,7 +43,21 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Right Section */}
+        {/* Right Section - Mobile Buttons */}
+        <div className="flex lg:hidden items-center gap-2">
+          <Link href="/registrar">
+            <Button size="sm" className="bg-[#FDB714] hover:bg-[#e5a512] text-black border-none font-semibold text-xs px-3 py-1">
+              Registrar
+            </Button>
+          </Link>
+          <Link href="/entrar">
+            <Button size="sm" variant="outline" className="border-white text-white hover:bg-white hover:text-[#003087] text-xs px-3 py-1">
+              Entrar
+            </Button>
+          </Link>
+        </div>
+
+        {/* Right Section - Desktop */}
         <div className="hidden lg:flex items-center gap-4">
           <div className="relative">
             <button

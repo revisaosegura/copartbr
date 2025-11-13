@@ -78,11 +78,19 @@ export default function EncontrarVeiculo() {
       </div>
 
       <main className="flex-1 bg-gray-100">
-        <div className="container py-6">
-          <div className="flex gap-6">
+        <div className="container py-4 md:py-6">
+          {/* Botão mobile para mostrar/ocultar filtros */}
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="lg:hidden mb-4 w-full bg-[#003087] text-white py-2 px-4 rounded flex items-center justify-center gap-2"
+          >
+            <Settings size={20} />
+            {showFilters ? 'Ocultar Filtros' : 'Mostrar Filtros'}
+          </button>
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-6">
             {/* Sidebar de Filtros */}
-            <aside className={`${showFilters ? 'w-64' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0`}>
-              <div className="bg-white rounded shadow-md p-4">
+            <aside className={`${showFilters ? 'w-full lg:w-64' : 'w-0'} transition-all duration-300 overflow-hidden flex-shrink-0`}>
+                <div className="bg-white rounded shadow-md p-3 md:p-4">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-lg font-bold text-[#003087]">Opções de filtro</h2>
                   <button onClick={() => setShowFilters(!showFilters)}>

@@ -2,12 +2,12 @@ import { Link } from "wouter";
 
 export default function Footer() {
   return (
-    <footer className="bg-[#002366] text-white mt-16">
-      <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-[#002366] text-white mt-8 md:mt-12 lg:mt-16">
+      <div className="container py-8 md:py-10 lg:py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
           {/* Coluna 1 - Sobre */}
           <div>
-            <h3 className="text-xl font-bold mb-4">Sobre a Copart</h3>
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Sobre a Copart</h3>
             <p className="text-sm text-gray-300">
               Plataforma líder em compra e venda de veículos online. Conectando compradores e vendedores ao redor do mundo.
             </p>
@@ -15,7 +15,7 @@ export default function Footer() {
 
           {/* Coluna 2 - Links Rápidos */}
           <div>
-            <h3 className="text-xl font-bold mb-4">Links Rápidos</h3>
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Links Rápidos</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/como-funciona">
@@ -42,7 +42,7 @@ export default function Footer() {
 
           {/* Coluna 3 - Suporte */}
           <div>
-            <h3 className="text-xl font-bold mb-4">Suporte</h3>
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Suporte</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link href="/suporte">
@@ -63,7 +63,7 @@ export default function Footer() {
 
           {/* Coluna 4 - Contato */}
           <div>
-            <h3 className="text-xl font-bold mb-4">Contato</h3>
+            <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Contato</h3>
             <ul className="space-y-2 text-sm text-gray-300">
               <li>Email: contato@copartbr.com.br</li>
               <li>Tel: +55 11 91471-9390</li>
