@@ -35,14 +35,21 @@ export function setupSocketIO(httpServer: HTTPServer) {
     socket.on("place-bid", (data: { vehicleId: number; userId: string; amount: number; userName: string }) => {
       const { vehicleId, userId, amount, userName } = data;
       
-      // Validar lance (deve ser maior que o lance atual)
+      // Validar lance (deve ser maior que o lance atual, sem restrição de incremento mínimo)
       const currentBids = activeBids.get(vehicleId) || [];
       const highestBid = currentBids.length > 0 
         ? Math.max(...currentBids.map(b => b.amount))
         : 0;
 
+      // Permitir qualquer lance maior que o atual (sem incremento mínimo)
       if (amount <= highestBid) {
         socket.emit("bid-error", { message: "Seu lance deve ser maior que o lance atual" });
+        return;
+      }
+      
+      // Validar que o lance não seja negativo ou zero
+      if (amount <= 0) {
+        socket.emit("bid-error", { message: "Digite um valor válido" });
         return;
       }
 

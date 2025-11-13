@@ -1,0 +1,13 @@
+{
+  "query": "SELECT COUNT(*) as zerados FROM vehicles WHERE active = 1 AND (currentBid = 0 OR currentBid IS NULL)",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway02.us-east-1.prod.aws.tidbcloud.com --port 4000 --user 2nvorDkh6VFqXwH.root --database gmyjLqHAQqVDyh7t2S4HiF --execute SELECT COUNT(*) as zerados FROM vehicles WHERE active = 1 AND (currentBid = 0 OR currentBid IS NULL)",
+  "rows": [
+    {
+      "zerados": "35"
+    }
+  ],
+  "messages": [],
+  "stdout": "zerados\n35\n",
+  "stderr": "",
+  "execution_time_ms": 49
+}

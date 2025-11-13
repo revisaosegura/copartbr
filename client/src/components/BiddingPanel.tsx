@@ -86,10 +86,10 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
     }
 
     const amountInCents = Math.round(amount * 100);
-    const minBid = highestBid + minBidIncrement;
-
-    if (amountInCents < minBid) {
-      toast.error(`O lance mínimo é R$ ${(minBid / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
+    
+    // Permitir qualquer valor de lance (sem restrição de mínimo)
+    if (amountInCents <= highestBid) {
+      toast.error(`Seu lance deve ser maior que o lance atual de R$ ${(highestBid / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
       return;
     }
 
@@ -135,7 +135,7 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
         {/* Formulário de Lance */}
         <div className="space-y-2">
           <label className="text-sm font-semibold text-gray-700">
-            Seu Lance (mínimo: R$ {(suggestedBid / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
+            Seu Lance (deve ser maior que o lance atual)
           </label>
           <div className="flex gap-2">
             <Input

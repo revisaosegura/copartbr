@@ -273,3 +273,10 @@
 - [x] Adicionar autocomplete no campo de busca do header
 - [x] Criar página de resultados de busca
 - [x] Testar busca em tempo real
+
+## Ajustes Sistema de Lances
+- [x] Corrigir valores de lances zerados
+- [x] Garantir que todos os veículos tenham valores de lance válidos
+- [x] Remover restrição de lance mínimo
+- [x] Permitir qualquer valor de lance desejado pelo usuário
+- [x] Testar sistema de lances ajustado
