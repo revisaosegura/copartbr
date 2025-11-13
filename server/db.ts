@@ -356,3 +356,37 @@ export async function markAllNotificationsAsRead(userId: number) {
   if (!db) throw new Error("Database not available");
   await db.update(notifications).set({ read: 1 }).where(eq(notifications.userId, userId));
 }
+
+// Get all users (admin only)
+export async function getAllUsers() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get users: database not available");
+    return [];
+  }
+
+  try {
+    const allUsers = await db.select().from(users).orderBy(desc(users.createdAt));
+    return allUsers;
+  } catch (error) {
+    console.error("[Database] Error fetching users:", error);
+    return [];
+  }
+}
+
+// Get user count
+export async function getUserCount() {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user count: database not available");
+    return 0;
+  }
+
+  try {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(users);
+    return result[0]?.count || 0;
+  } catch (error) {
+    console.error("[Database] Error counting users:", error);
+    return 0;
+  }
+}

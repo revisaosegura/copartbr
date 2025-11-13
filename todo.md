@@ -299,3 +299,12 @@
 - [x] Corrigir contador de lances
 - [x] Atualizar anos dos veículos para 2025
 - [x] Testar sistema de lances corrigido
+
+## Correções Admin e Listagem de Usuários
+- [x] Corrigir erro "TypeError: Invalid URL" na página admin
+- [x] Tornar OAuth opcional quando não configurado
+- [x] Adicionar endpoint para listar usuários (admin.users.list)
+- [x] Adicionar endpoint para contar usuários (admin.users.count)
+- [x] Adicionar seção "Usuários Cadastrados" no painel admin
+- [x] Exibir nome, email, role e data de cadastro dos usuários
+- [x] Testar funcionalidade de listagem de usuários

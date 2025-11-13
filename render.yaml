@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: copart-brasil
+    runtime: node
+    plan: free
+    buildCommand: bash scripts/build.sh
+    startCommand: bash scripts/start.sh
+    envVars:
+      - key: NODE_VERSION
+        value: 22.13.0
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: APIFY_API_TOKEN
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OAUTH_SERVER_URL
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false

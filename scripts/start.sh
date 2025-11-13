@@ -1,0 +1,8 @@
+#!/bin/bash
+set -e
+
+echo "🗄️  Running database migrations..."
+pnpm db:push || echo "⚠️  Migration failed or already up to date, continuing..."
+
+echo "🚀 Starting server..."
+pnpm start

@@ -83,6 +83,7 @@ export default function Admin() {
   const { data: stats, isLoading: statsLoading } = trpc.admin.stats.useQuery();
   const { data: syncLogs, isLoading: logsLoading } = trpc.admin.sync.getLogs.useQuery({ limit: 10 });
   const { data: vehicles, isLoading: vehiclesLoading } = trpc.admin.vehicles.list.useQuery();
+  const { data: usersData, isLoading: usersLoading } = trpc.admin.users.list.useQuery();
 
   if (loading || statsLoading) {
     return (
@@ -205,6 +206,43 @@ export default function Admin() {
                   </div>
                 ) : (
                   <p className="text-gray-500">Nenhum log disponível</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Registered Users */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Usuários Cadastrados</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {usersLoading ? (
+                  <p className="text-gray-500">Carregando usuários...</p>
+                ) : usersData && usersData.length > 0 ? (
+                  <div className="space-y-3">
+                    {usersData.slice(0, 10).map((user) => (
+                      <div key={user.id} className="flex items-center justify-between border-b pb-2">
+                        <div>
+                          <p className="font-semibold text-sm">{user.name || "Nome não informado"}</p>
+                          <p className="text-xs text-gray-500">{user.email || "Email não informado"}</p>
+                        </div>
+                        <div className="text-right">
+                          <span
+                            className={`text-xs px-2 py-1 rounded ${
+                              user.role === "admin" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
+                            }`}
+                          >
+                            {user.role || "user"}
+                          </span>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(user.createdAt).toLocaleDateString("pt-BR")}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-gray-500">Nenhum usuário cadastrado</p>
                 )}
               </CardContent>
             </Card>

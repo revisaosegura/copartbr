@@ -32,12 +32,18 @@ async function startServer() {
   const server = createServer(app);
   
   // Stripe webhook MUST be registered BEFORE express.json() to preserve raw body
-  const { handleStripeWebhook } = await import("../stripe/webhook");
-  app.post(
-    "/api/stripe/webhook",
-    express.raw({ type: "application/json" }),
-    handleStripeWebhook
-  );
+  // Apenas registra se STRIPE_SECRET_KEY estiver configurado
+  if (process.env.STRIPE_SECRET_KEY) {
+    const { handleStripeWebhook } = await import("../stripe/webhook");
+    app.post(
+      "/api/stripe/webhook",
+      express.raw({ type: "application/json" }),
+      handleStripeWebhook
+    );
+    console.log("[Stripe] Webhook registrado em /api/stripe/webhook");
+  } else {
+    console.warn("[Stripe] STRIPE_SECRET_KEY não configurado - webhook desabilitado");
+  }
   
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));

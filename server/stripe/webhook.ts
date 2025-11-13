@@ -4,11 +4,20 @@ import { getDb } from "../db";
 import { payments, users } from "../../drizzle/schema";
 import { eq } from "drizzle-orm";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-10-29.clover",
-});
+// Stripe é opcional - apenas inicializa se a chave estiver configurada
+const stripe = process.env.STRIPE_SECRET_KEY 
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: "2025-10-29.clover",
+    })
+  : null;
 
 export async function handleStripeWebhook(req: Request, res: Response) {
+  // Verificar se Stripe está configurado
+  if (!stripe) {
+    console.warn("[Webhook] Stripe não configurado - STRIPE_SECRET_KEY ausente");
+    return res.status(503).send("Stripe not configured");
+  }
+
   const sig = req.headers["stripe-signature"];
 
   if (!sig) {

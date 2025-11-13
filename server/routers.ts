@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
-import { getDashboardStats, getRecentSyncLogs, getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle, getAllSettings, upsertSetting, getUserNotifications, getUnreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead, createNotification } from "./db";
+import { getDashboardStats, getRecentSyncLogs, getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle, getAllSettings, upsertSetting, getUserNotifications, getUnreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead, createNotification, getAllUsers, getUserCount } from "./db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { NOT_ADMIN_ERR_MSG } from "@shared/const";
@@ -181,6 +181,22 @@ export const appRouter = router({
           const { getSyncLogs } = await import('./db');
           return await getSyncLogs(input.limit);
         }),
+    }),
+
+    // User management
+    users: router({      list: protectedProcedure.query(async ({ ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
+        }
+        return await getAllUsers();
+      }),
+
+      count: protectedProcedure.query(async ({ ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
+        }
+        return await getUserCount();
+      }),
     }),
 
     // Settings management
