@@ -319,3 +319,8 @@
 - [x] Implementar estatísticas de lances (total, por veículo, tendências)
 - [x] Adicionar biblioteca de gráficos (Recharts)
 - [x] Testar dashboard completo
+
+## Correção de Tags Aninhadas
+- [x] Identificar tags <a> aninhadas na página inicial
+- [x] Corrigir estrutura HTML para remover aninhamento
+- [x] Testar correção no navegador

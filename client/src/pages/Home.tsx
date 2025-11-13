@@ -33,8 +33,8 @@ export default function Home() {
       <div className="bg-[#FF6B00] text-white py-3 text-center relative">
         <p className="font-semibold">
           Venda Seu Veículo De Forma Segura. Acesse o link e{" "}
-          <Link href="/vender-meu-carro">
-            <a className="underline hover:text-gray-200">Saiba Mais &gt;</a>
+          <Link href="/vender-meu-carro" className="underline hover:text-gray-200">
+            Saiba Mais &gt;
           </Link>
         </p>
       </div>
@@ -83,19 +83,15 @@ export default function Home() {
                       </li>
                     </ul>
                     <div className="flex gap-2">
-                      <Link href="/venda-direta">
-                        <a className="flex-1">
-                          <Button className="w-full bg-[#FDB714] hover:bg-[#e5a512] text-black font-semibold">
-                            Comprar
-                          </Button>
-                        </a>
+                      <Link href="/venda-direta" className="flex-1">
+                        <Button className="w-full bg-[#FDB714] hover:bg-[#e5a512] text-black font-semibold">
+                          Comprar
+                        </Button>
                       </Link>
-                      <Link href="/vender-meu-carro">
-                        <a className="flex-1">
-                          <Button className="w-full bg-white hover:bg-gray-100 text-black font-semibold">
-                            Vender
-                          </Button>
-                        </a>
+                      <Link href="/vender-meu-carro" className="flex-1">
+                        <Button className="w-full bg-white hover:bg-gray-100 text-black font-semibold">
+                          Vender
+                        </Button>
                       </Link>
                     </div>
                   </CardContent>
@@ -124,19 +120,15 @@ export default function Home() {
                       </li>
                     </ul>
                     <div className="flex gap-2">
-                      <Link href="/leiloes">
-                        <a className="flex-1">
-                          <Button className="w-full bg-[#FDB714] hover:bg-[#e5a512] text-black font-semibold">
-                            Comprar
-                          </Button>
-                        </a>
+                      <Link href="/leiloes" className="flex-1">
+                        <Button className="w-full bg-[#FDB714] hover:bg-[#e5a512] text-black font-semibold">
+                          Comprar
+                        </Button>
                       </Link>
-                      <Link href="/vender-meu-carro">
-                        <a className="flex-1">
-                          <Button className="w-full bg-white hover:bg-gray-100 text-black font-semibold">
-                            Vender
-                          </Button>
-                        </a>
+                      <Link href="/vender-meu-carro" className="flex-1">
+                        <Button className="w-full bg-white hover:bg-gray-100 text-black font-semibold">
+                          Vender
+                        </Button>
                       </Link>
                     </div>
                   </CardContent>
