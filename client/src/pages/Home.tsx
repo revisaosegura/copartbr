@@ -10,11 +10,10 @@ import { trpc } from "@/lib/trpc";
 
 export default function Home() {
   // Buscar veículos do backend
-  const { data: vehicles, refetch } = trpc.admin.vehicles.list.useQuery();
-  
-  // Filtrar veículos em destaque (primeiros 4)
-  const featuredVehicles = vehicles?.slice(0, 4) || [];
-  const totalVehicles = vehicles?.length || 0;
+  const { data, refetch, isLoading } = trpc.vehicles.list.useQuery({ limit: 4 });
+
+  const featuredVehicles = data?.items || [];
+  const totalVehicles = data?.total || 0;
 
   useEffect(() => {
     // Atualizar dados a cada 5 minutos
@@ -143,6 +142,12 @@ export default function Home() {
           <div className="container">
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-[#003087] mb-6 md:mb-8">Veículos em destaque</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {isLoading && (
+                <p className="col-span-full text-gray-500">Carregando veículos...</p>
+              )}
+              {!isLoading && featuredVehicles.length === 0 && (
+                <p className="col-span-full text-gray-500">Nenhum veículo disponível no momento.</p>
+              )}
               {featuredVehicles.map((vehicle) => (
                 <VehicleCard
                   key={vehicle.id}

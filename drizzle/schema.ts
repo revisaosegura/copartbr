@@ -45,6 +45,9 @@ export const vehicles = mysqlTable("vehicles", {
   transmission: varchar("transmission", { length: 50 }),
   color: varchar("color", { length: 50 }),
   condition: varchar("condition", { length: 100 }),
+  auctionDate: timestamp("auctionDate"),
+  auctionTime: varchar("auctionTime", { length: 20 }),
+  saleStatus: varchar("saleStatus", { length: 100 }),
   featured: int("featured").default(0), // 0 = false, 1 = true
   active: int("active").default(1), // 0 = false, 1 = true
   createdAt: timestamp("createdAt").defaultNow().notNull(),

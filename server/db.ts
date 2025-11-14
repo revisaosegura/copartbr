@@ -1,4 +1,4 @@
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and, gte, isNotNull, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { InsertUser, users, vehicles, priceHistory, syncLogs, siteSettings, siteStats, notifications, InsertVehicle, InsertPriceHistory, InsertSyncLog, InsertSiteSetting, InsertSiteStats, InsertNotification } from "../drizzle/schema";
 import { ENV } from './_core/env';
@@ -276,34 +276,125 @@ export async function searchVehicles(query: string, limit: number = 10) {
 }
 
 export async function getFilteredVehicles(filters: {
-  brand?: string;
-  year?: number;
-  condition?: string;
+  brands?: string[];
+  years?: number[];
+  conditions?: string[];
   limit?: number;
   offset?: number;
 }) {
   const db = await getDb();
+  if (!db) {
+    return { items: [], total: 0 };
+  }
+
+  const clauses = [eq(vehicles.active, 1)];
+
+  if (filters.brands && filters.brands.length > 0) {
+    clauses.push(inArray(vehicles.brand, filters.brands));
+  }
+
+  if (filters.years && filters.years.length > 0) {
+    clauses.push(inArray(vehicles.year, filters.years));
+  }
+
+  if (filters.conditions && filters.conditions.length > 0) {
+    clauses.push(inArray(vehicles.condition, filters.conditions));
+  }
+
+  const whereClause = clauses.length > 1 ? and(...clauses) : clauses[0];
+  const limit = filters.limit ?? 20;
+  const offset = filters.offset ?? 0;
+
+  const [items, totalResult] = await Promise.all([
+    db
+      .select()
+      .from(vehicles)
+      .where(whereClause)
+      .orderBy(desc(vehicles.createdAt))
+      .limit(limit)
+      .offset(offset),
+    db
+      .select({ count: sql<number>`count(*)` })
+      .from(vehicles)
+      .where(whereClause),
+  ]);
+
+  const total = Number(totalResult[0]?.count ?? 0);
+
+  return { items, total };
+}
+
+export async function getUpcomingAuctions(limit: number = 8) {
+  const db = await getDb();
   if (!db) return [];
-  
-  const conditions = [eq(vehicles.active, 1)];
-  
-  if (filters.brand) {
-    conditions.push(eq(vehicles.brand, filters.brand));
+
+  const now = new Date();
+
+  const rawVehicles = await db
+    .select({
+      id: vehicles.id,
+      location: vehicles.location,
+      auctionDate: vehicles.auctionDate,
+      auctionTime: vehicles.auctionTime,
+    })
+    .from(vehicles)
+    .where(
+      and(
+        eq(vehicles.active, 1),
+        isNotNull(vehicles.auctionDate),
+        gte(vehicles.auctionDate, now)
+      )
+    )
+    .orderBy(vehicles.auctionDate)
+    .limit(limit * 5);
+
+  type AuctionGroup = {
+    key: string;
+    auctionDate: Date;
+    location: string | null;
+    vehicleCount: number;
+    auctionTimes: Set<string>;
+  };
+
+  const groups = new Map<string, AuctionGroup>();
+
+  for (const item of rawVehicles) {
+    if (!item.auctionDate) continue;
+    const location = item.location ?? "Localização não informada";
+    const dateKey = `${item.auctionDate.toISOString().split("T")[0]}|${location}`;
+    let group = groups.get(dateKey);
+    if (!group) {
+      group = {
+        key: dateKey,
+        auctionDate: item.auctionDate,
+        location,
+        vehicleCount: 0,
+        auctionTimes: new Set<string>(),
+      };
+      groups.set(dateKey, group);
+    }
+
+    if (item.auctionDate < group.auctionDate) {
+      group.auctionDate = item.auctionDate;
+    }
+
+    group.vehicleCount += 1;
+
+    if (item.auctionTime) {
+      group.auctionTimes.add(item.auctionTime);
+    }
   }
-  
-  if (filters.year) {
-    conditions.push(eq(vehicles.year, filters.year));
-  }
-  
-  if (filters.condition) {
-    conditions.push(eq(vehicles.condition, filters.condition));
-  }
-  
-  return await db.select().from(vehicles)
-    .where(sql`${sql.join(conditions, sql` AND `)}`)
-    .orderBy(desc(vehicles.createdAt))
-    .limit(filters.limit || 20)
-    .offset(filters.offset || 0);
+
+  return Array.from(groups.values())
+    .sort((a, b) => a.auctionDate.getTime() - b.auctionDate.getTime())
+    .slice(0, limit)
+    .map(group => ({
+      id: group.key,
+      location: group.location,
+      auctionDate: group.auctionDate,
+      auctionTimes: Array.from(group.auctionTimes).sort(),
+      vehicleCount: group.vehicleCount,
+    }));
 }
 
 export async function getVehicleCount() {
