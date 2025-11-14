@@ -53,17 +53,6 @@ const HERO_CARDS = [
   },
 ];
 
-const QUICK_FILTERS = [
-  "Hatch",
-  "Sedan",
-  "SUV",
-  "Picapes",
-  "Motocicletas",
-  "Caminhões",
-  "Pequena Monta",
-  "Grande Monta",
-];
-
 const OPPORTUNITY_CARDS = [
   {
     title: "Nos Leilões",
@@ -381,36 +370,50 @@ export default function Home() {
       <Header />
 
       <main className="flex-1">
-        <section className="bg-[#002a6b] text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#000c26] via-[#001a47] to-[#002a6b] opacity-90" aria-hidden="true" />
-          <div className="relative container py-10 lg:py-16">
-            <div className="bg-[#fdb714] text-[#001b45] text-xs font-semibold uppercase tracking-[0.2em] inline-flex px-4 py-2 rounded-full mb-6">
-              Plataforma oficial Copart Brasil
+        <section className="relative overflow-hidden bg-[#001a3d] text-white">
+          <div className="absolute inset-0">
+            <img
+              src="/car4.jpg"
+              alt="Frota Copart"
+              className="absolute bottom-0 right-0 h-full w-full object-cover object-right"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#050b21] via-[#002a6b]/95 to-[#004b8d]/90" aria-hidden="true" />
+          </div>
+
+          <div className="relative container py-12 lg:py-20 space-y-10">
+            <div className="inline-flex items-center gap-2 bg-white/95 text-[#001b45] px-4 py-2 rounded-full text-sm shadow-lg">
+              <span className="font-semibold uppercase tracking-[0.18em] text-[11px] text-[#003087]">Aviso</span>
+              <span className="text-sm font-medium">
+                No dia 14/11, devido ao feriado municipal, nossa unidade de Goiânia não estará em funcionamento.
+              </span>
             </div>
 
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,620px)_1fr] items-start">
-              <div className="space-y-8">
-                <div className="space-y-4">
+            <div className="grid gap-12 lg:grid-cols-[minmax(0,620px)_1fr] items-start">
+              <div className="space-y-10">
+                <div className="space-y-4 max-w-2xl">
+                  <span className="inline-flex bg-[#fdb714] text-[#001b45] text-xs font-semibold uppercase tracking-[0.2em] px-5 py-2 rounded-full">
+                    Plataforma oficial Copart Brasil
+                  </span>
                   <h1 className="text-4xl md:text-5xl lg:text-[56px] font-bold leading-tight">
                     Conectando compradores e vendedores ao redor do mundo.
                   </h1>
-                  <p className="text-lg md:text-xl text-white/80 max-w-2xl">
-                    São mais de 12.600 veículos com fotos de alta qualidade, relatórios completos e tecnologia Copart 360°. Cadastre-se, acompanhe os lotes e dê seu lance de qualquer lugar.
+                  <p className="text-lg md:text-xl text-white/85">
+                    São + de 12.600 veículos disponíveis para compra online. De automóveis a caminhões, motocicletas e muito mais.
                   </p>
                 </div>
 
-                <form onSubmit={handleSearch} className="bg-white/10 backdrop-blur rounded-2xl p-4 md:p-5 space-y-3">
-                  <label className="text-xs uppercase tracking-widest font-semibold text-white/70 block">
+                <form onSubmit={handleSearch} className="bg-white rounded-2xl shadow-2xl p-5 space-y-4">
+                  <label className="text-xs uppercase tracking-[0.3em] font-semibold text-[#003087] block">
                     Pesquisar inventário
                   </label>
                   <div className="relative flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#003087]" size={18} />
+                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                       <input
                         value={searchTerm}
                         onChange={event => setSearchTerm(event.target.value)}
                         placeholder="Procurar por Marca, Modelo, Descrição, Chassi ou Número do Lote"
-                        className="w-full rounded-xl border border-white/40 bg-white text-gray-900 placeholder:text-gray-500 py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-[#fdb714]"
+                        className="w-full rounded-xl border border-gray-200 bg-white text-gray-900 placeholder:text-gray-500 py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-[#fdb714]"
                       />
                     </div>
                     <Button
@@ -420,26 +423,13 @@ export default function Home() {
                       Buscar
                     </Button>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs uppercase tracking-widest text-white/60 font-semibold">Pesquisas rápidas:</span>
-                    {QUICK_FILTERS.map(filter => (
-                      <button
-                        key={filter}
-                        type="button"
-                        onClick={() => handleQuickFilter(filter)}
-                        className="bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-3 py-1 rounded-full transition"
-                      >
-                        {filter}
-                      </button>
-                    ))}
-                  </div>
                 </form>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   {HERO_STATS.map(stat => (
-                    <div key={stat.label} className="bg-white/10 border border-white/10 rounded-2xl px-5 py-4">
+                    <div key={stat.label} className="rounded-2xl bg-white/10 backdrop-blur border border-white/10 px-6 py-5 shadow-lg">
                       <p className="text-3xl font-bold text-white">{stat.value}</p>
-                      <p className="text-sm text-white/70">{stat.label}</p>
+                      <p className="text-sm text-white/80">{stat.label}</p>
                     </div>
                   ))}
                 </div>
@@ -447,14 +437,14 @@ export default function Home() {
 
               <div className="grid gap-6">
                 {HERO_CARDS.map(card => (
-                  <div key={card.title} className="bg-white text-[#001b45] rounded-3xl shadow-xl p-7 space-y-4">
+                  <div key={card.title} className="bg-white/95 text-[#001b45] rounded-3xl shadow-2xl p-8 space-y-5">
                     <div className="flex items-center justify-between gap-3">
                       <h2 className="text-2xl font-bold">{card.title}</h2>
                       <Badge className="bg-[#001b45] text-white px-3 py-1 rounded-full text-xs uppercase tracking-widest">
                         Copart Brasil
                       </Badge>
                     </div>
-                    <p className="text-sm font-semibold uppercase text-[#0050b5] tracking-widest">
+                    <p className="text-sm font-semibold uppercase text-[#0050b5] tracking-[0.3em]">
                       {card.highlight}
                     </p>
                     <ul className="space-y-2 text-sm text-[#002a6b]">

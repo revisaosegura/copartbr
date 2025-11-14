@@ -79,7 +79,7 @@ export default function Header() {
             <form onSubmit={handleSearch} className="flex w-full">
               <input
                 type="text"
-                placeholder="Procurar por Marca, Modelo, Descrição, Chassis ou Número do Lote"
+                placeholder="Procurar por Marca, Modelo, Descrição, Chassi ou Número do Lote"
                 className="w-full pl-10 pr-4 py-2 text-gray-900 rounded-l focus:outline-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -156,6 +156,11 @@ export default function Header() {
 
         {/* Right Section - Desktop */}
         <div className="hidden lg:flex items-center gap-4">
+          <Link href="/achar-pecas">
+            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-[#003087]">
+              Achar Peças
+            </Button>
+          </Link>
           <div className="relative">
             <button
               className="flex items-center gap-2 hover:opacity-80"
