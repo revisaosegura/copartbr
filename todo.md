@@ -333,3 +333,13 @@
 - [x] Adicionar botão de logout no admin
 - [x] Testar fluxo completo de autenticação
 - [x] Enviar para GitHub
+
+## Investigação Render - Veículos Não Aparecem
+- [x] Verificar se GitHub está atualizado com último checkpoint
+- [x] Investigar por que veículos não aparecem no Render
+- [x] Verificar se banco de dados está conectado
+- [x] Verificar se sincronização Apify está funcionando
+- [x] Criar script de inicialização do banco (init-db.mjs)
+- [x] Atualizar script de start para verificar banco
+- [x] Criar documentação de deploy (DEPLOY.md)
+- [x] Adicionar seção de troubleshooting no README

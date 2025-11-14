@@ -154,6 +154,19 @@ copartbr/
 - Proteção contra SQL Injection via Drizzle ORM
 - CORS configurado
 
+## 🔧 Troubleshooting
+
+### Veículos não aparecem no site
+
+**Causa**: Banco de dados vazio ou token Apify não configurado
+
+**Solução**:
+1. Verifique se `APIFY_API_TOKEN` está configurado nas variáveis de ambiente
+2. Aguarde a sincronização automática (a cada 4 horas)
+3. Ou acesse `/admin` (usuário: `copart2025`, senha: `Copart2025`) e clique em "Sincronizar Agora"
+
+Veja `DEPLOY.md` para instruções detalhadas.
+
 ## 📝 Licença
 
 Este projeto é um clone educacional do site Copart.
