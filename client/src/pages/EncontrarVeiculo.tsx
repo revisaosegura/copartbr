@@ -31,9 +31,7 @@ export default function EncontrarVeiculo() {
     offset: (currentPage - 1) * resultsPerPage,
   } as const;
 
-  const { data, isLoading } = trpc.vehicles.list.useQuery(queryInput, {
-    keepPreviousData: true,
-  });
+  const { data, isLoading } = trpc.vehicles.list.useQuery(queryInput);
 
   const vehicles = data?.items ?? [];
   const totalVehicles = data?.total ?? 0;
