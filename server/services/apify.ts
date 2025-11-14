@@ -1,13 +1,15 @@
-import axios from 'axios';
+import axios from "axios";
+
+import type { InsertVehicle } from "../../drizzle/schema";
 
 const APIFY_API_TOKEN = process.env.APIFY_API_TOKEN;
-const APIFY_BASE_URL = 'https://api.apify.com/v2';
-const APIFY_DATASET_ID = 'x1Sv3284nZtfhMi9z'; // Dataset fixo com dados da Copart
+const APIFY_BASE_URL = "https://api.apify.com/v2";
+const APIFY_DATASET_ID = "x1Sv3284nZtfhMi9z"; // Dataset fixo com dados da Copart
 
 interface ApifyRun {
   id: string;
   actId: string;
-  status: 'SUCCEEDED' | 'RUNNING' | 'FAILED';
+  status: "SUCCEEDED" | "RUNNING" | "FAILED";
   startedAt: string;
   finishedAt: string | null;
   defaultDatasetId: string;
@@ -65,8 +67,8 @@ export async function getApifyRuns(): Promise<ApifyRun[]> {
 
     return response.data.data.items || [];
   } catch (error) {
-    console.error('Erro ao buscar runs do Apify:', error);
-    throw new Error('Falha ao buscar execuções do Apify');
+    console.error("Erro ao buscar runs do Apify:", error);
+    throw new Error("Falha ao buscar execuções do Apify");
   }
 }
 
@@ -75,26 +77,31 @@ export async function getApifyRuns(): Promise<ApifyRun[]> {
  */
 export async function getLatestSuccessfulRun(): Promise<ApifyRun | null> {
   const runs = await getApifyRuns();
-  const successfulRun = runs.find(run => run.status === 'SUCCEEDED');
+  const successfulRun = runs.find((run) => run.status === "SUCCEEDED");
   return successfulRun || null;
 }
 
 /**
  * Busca os dados de veículos de um dataset específico
  */
-export async function getDatasetItems(datasetId: string): Promise<ApifyVehicleData[]> {
+export async function getDatasetItems(
+  datasetId: string
+): Promise<ApifyVehicleData[]> {
   try {
-    const response = await axios.get(`${APIFY_BASE_URL}/datasets/${datasetId}/items`, {
-      params: {
-        token: APIFY_API_TOKEN,
-        format: 'json',
-      },
-    });
+    const response = await axios.get(
+      `${APIFY_BASE_URL}/datasets/${datasetId}/items`,
+      {
+        params: {
+          token: APIFY_API_TOKEN,
+          format: "json",
+        },
+      }
+    );
 
     return response.data || [];
   } catch (error) {
     console.error(`Erro ao buscar dados do dataset ${datasetId}:`, error);
-    throw new Error('Falha ao buscar dados do dataset');
+    throw new Error("Falha ao buscar dados do dataset");
   }
 }
 
@@ -104,7 +111,7 @@ export async function getDatasetItems(datasetId: string): Promise<ApifyVehicleDa
 export async function getLatestVehicleData(): Promise<ApifyVehicleData[]> {
   console.log(`Buscando dados do dataset: ${APIFY_DATASET_ID}`);
   const vehicles = await getDatasetItems(APIFY_DATASET_ID);
-  
+
   console.log(`${vehicles.length} veículos encontrados no Apify`);
   return vehicles;
 }
@@ -112,34 +119,93 @@ export async function getLatestVehicleData(): Promise<ApifyVehicleData[]> {
 /**
  * Transforma dados do Apify para o formato do banco de dados
  */
-export function transformApifyVehicle(apifyVehicle: ApifyVehicleData) {
+const parseInteger = (value: unknown): number | null => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.round(value);
+  }
+
+  if (typeof value === "string") {
+    const cleaned = value
+      .replace(/[^0-9.,-]/g, "")
+      .replace(/,/g, ".")
+      .trim();
+    if (cleaned.length === 0) {
+      return null;
+    }
+
+    const numeric = Number.parseFloat(cleaned);
+    if (!Number.isNaN(numeric) && Number.isFinite(numeric)) {
+      return Math.round(numeric);
+    }
+  }
+
+  return null;
+};
+
+const normalizeString = (value?: string | null): string | null => {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+export function transformApifyVehicle(
+  apifyVehicle: ApifyVehicleData
+): InsertVehicle {
+  const currentBid = parseInteger(apifyVehicle.current_bid) ?? 0;
+  const mileage =
+    parseInteger(apifyVehicle.odometer_reading ?? apifyVehicle.odometer) ??
+    undefined;
+
+  const locationCandidates = [
+    normalizeString(apifyVehicle.sale_location),
+    normalizeString(
+      [apifyVehicle.location_city, apifyVehicle.location_state]
+        .filter((part) => normalizeString(part) !== null)
+        .join(", ")
+    ),
+  ];
+
+  const location = locationCandidates.find(
+    (value): value is string => typeof value === "string" && value.length > 0
+  );
+
+  const titleParts = [
+    apifyVehicle.year,
+    normalizeString(apifyVehicle.make),
+    normalizeString(apifyVehicle.model),
+    normalizeString(apifyVehicle.trim),
+  ].filter((part) => part && String(part).length > 0);
+
+  const title = titleParts.join(" ").trim();
+
   return {
     lotNumber: apifyVehicle.lot_number,
-    title: `${apifyVehicle.year} ${apifyVehicle.make} ${apifyVehicle.model}${apifyVehicle.trim ? ' ' + apifyVehicle.trim : ''}`,
-    brand: apifyVehicle.make,
-    model: apifyVehicle.model,
-    year: apifyVehicle.year,
-    currentBid: apifyVehicle.current_bid || 0,
-    location: apifyVehicle.sale_location || `${apifyVehicle.location_city}, ${apifyVehicle.location_state}`,
-    image: apifyVehicle.images && apifyVehicle.images.length > 0 ? apifyVehicle.images[0] : undefined,
-    description: `${apifyVehicle.condition || ''} - ${apifyVehicle.primary_damage || 'No damage info'}`,
-    mileage: apifyVehicle.odometer_reading || 0,
-    fuel: apifyVehicle.fuel || 'Unknown',
-    transmission: apifyVehicle.transmission || 'Unknown',
-    color: apifyVehicle.color || 'Unknown',
-    condition: apifyVehicle.condition || 'Unknown',
-    featured: 0, // Pode ser ajustado com base em critérios
-    // Campos adicionais que podem ser úteis
-    vin: apifyVehicle.vin,
-    engineType: apifyVehicle.engine_type,
-    drive: apifyVehicle.drive,
-    primaryDamage: apifyVehicle.primary_damage,
-    titleCode: apifyVehicle.title_code,
-    auctionDate: apifyVehicle.auction_date ? new Date(apifyVehicle.auction_date) : undefined,
-    saleStatus: apifyVehicle.sale_status,
-    estimatedValue: apifyVehicle.estimated_retail_value,
-    buyNowPrice: apifyVehicle.buy_it_now_price,
-    itemUrl: apifyVehicle.item_url,
-    images: apifyVehicle.images,
+    title: title.length > 0 ? title : `Lote ${apifyVehicle.lot_number}`,
+    brand: normalizeString(apifyVehicle.make),
+    model: normalizeString(apifyVehicle.model),
+    year: typeof apifyVehicle.year === "number" ? apifyVehicle.year : null,
+    currentBid,
+    location: location ?? null,
+    image: normalizeString(apifyVehicle.images?.[0] ?? null),
+    description:
+      normalizeString(apifyVehicle.condition) ||
+      normalizeString(apifyVehicle.primary_damage)
+        ? [
+            normalizeString(apifyVehicle.condition),
+            normalizeString(apifyVehicle.primary_damage) ?? "No damage info",
+          ]
+            .filter((part): part is string => typeof part === "string")
+            .join(" - ")
+        : "No damage info",
+    mileage: mileage ?? null,
+    fuel: normalizeString(apifyVehicle.fuel),
+    transmission: normalizeString(apifyVehicle.transmission),
+    color: normalizeString(apifyVehicle.color),
+    condition: normalizeString(apifyVehicle.condition),
+    featured: 0,
+    active: 1,
   };
 }
