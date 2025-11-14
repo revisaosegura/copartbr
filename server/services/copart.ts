@@ -175,7 +175,39 @@ function pickDate(lot: CopartLot, keys: string[]): Date | null {
   return null;
 }
 
-function toCents(value: number | null): number {
+function normalizeCurrencyUnit(unit: string | null | undefined): "cents" | "reais" | null {
+  if (!unit) return null;
+
+  const normalized = unit
+    .toLowerCase()
+    .replace(/[^a-z]/g, "")
+    .trim();
+
+  if (
+    [
+      "cent",
+      "cents",
+      "centavo",
+      "centavos",
+      "centavosbr",
+      "centavosbrl",
+      "brlcentavo",
+      "brlcentavos",
+      "brlcent",
+      "brlcents",
+    ].includes(normalized)
+  ) {
+    return "cents";
+  }
+
+  if (["brl", "real", "reais", "rs"].includes(normalized)) {
+    return "reais";
+  }
+
+  return null;
+}
+
+function toCents(value: number | null, unit?: string | null): number {
   if (value === null || Number.isNaN(value)) {
     return 0;
   }
@@ -186,11 +218,13 @@ function toCents(value: number | null): number {
     return 0;
   }
 
-  if (absolute > 100_000 && Number.isInteger(value)) {
-    // Valores muito altos costumam já estar em centavos
+  const normalizedUnit = normalizeCurrencyUnit(unit);
+
+  if (normalizedUnit === "cents") {
     return Math.round(value);
   }
 
+  // Por padrão assumimos que os valores da Copart estão em reais (BRL)
   return Math.round(value * 100);
 }
 
@@ -367,6 +401,19 @@ export function transformCopartLot(lot: CopartLot): InsertVehicle {
     "bbid",
   ]);
 
+  const currentBidUnit = pickString(lot, [
+    "currentBidCurrency",
+    "currentBidCurrencyCode",
+    "currentBidUnit",
+    "current_bid_unit",
+    "currency",
+    "currencyCode",
+    "currency_code",
+    "cu",
+    "currentBidAmountUnit",
+    "currentBidAmountType",
+  ]);
+
   const mileage = pickNumber(lot, ["odometer", "odometerReading", "odometer_reading", "od", "odrd"]);
   const fuel = pickString(lot, ["fuel", "fuelType", "ft"]);
   const transmission = pickString(lot, ["transmission", "tm", "transmissionType"]);
@@ -412,7 +459,7 @@ export function transformCopartLot(lot: CopartLot): InsertVehicle {
     ])
   );
 
-  const currentBid = toCents(currentBidValue ?? 0);
+  const currentBid = toCents(currentBidValue ?? 0, currentBidUnit);
 
   return {
     lotNumber,
