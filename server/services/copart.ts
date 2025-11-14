@@ -7,8 +7,23 @@ const COPART_SEARCH_URL =
 const COPART_SEARCH_FALLBACK_URL =
   process.env.COPART_SEARCH_FALLBACK_URL ??
   "https://www.copart.com.br/public/data/lots/search-results";
-const DEFAULT_PAGE_SIZE = Number.parseInt(process.env.COPART_PAGE_SIZE ?? "100", 10);
-const DEFAULT_MAX_PAGES = Number.parseInt(process.env.COPART_MAX_PAGES ?? "5", 10);
+
+function parsePositiveInteger(value?: string): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return undefined;
+  }
+
+  return parsed;
+}
+
+const DEFAULT_PAGE_SIZE = parsePositiveInteger(process.env.COPART_PAGE_SIZE) ?? 100;
+const DEFAULT_MAX_PAGES =
+  parsePositiveInteger(process.env.COPART_MAX_PAGES) ?? Number.POSITIVE_INFINITY;
 
 interface CopartSearchPayload {
   page: number;
@@ -25,12 +40,20 @@ interface CopartSearchResponse {
       content?: CopartLot[];
       totalElements?: number;
     };
+    content?: CopartLot[];
+    totalElements?: number;
   };
   results?: {
     content?: CopartLot[];
     totalElements?: number;
   };
   content?: CopartLot[];
+  totalElements?: number;
+}
+
+interface CopartSearchResultPage {
+  lots: CopartLot[];
+  totalElements: number | null;
 }
 
 export type CopartLot = Record<string, unknown>;
@@ -48,18 +71,44 @@ const httpClient = axios.create({
   },
 });
 
-function extractContent(response: CopartSearchResponse): CopartLot[] {
+function sanitizePositiveInteger(maxItems?: number): number | undefined {
+  if (typeof maxItems !== "number" || Number.isNaN(maxItems)) {
+    return undefined;
+  }
+
+  const rounded = Math.floor(maxItems);
+  if (!Number.isFinite(rounded) || rounded <= 0) {
+    return undefined;
+  }
+
+  return rounded;
+}
+
+function extractSearchResult(response: CopartSearchResponse): CopartSearchResultPage {
   const nestedContent =
     response?.data?.results?.content ??
+    response?.data?.content ??
     response?.results?.content ??
     response?.content ??
     [];
 
-  if (Array.isArray(nestedContent)) {
-    return nestedContent;
-  }
+  const lots = Array.isArray(nestedContent) ? nestedContent : [];
 
-  return [];
+  const totalCandidates = [
+    response?.data?.results?.totalElements,
+    response?.data?.totalElements,
+    response?.results?.totalElements,
+    response?.totalElements,
+  ];
+
+  const firstValidTotal = totalCandidates.find(
+    (value): value is number => typeof value === "number" && Number.isFinite(value) && value >= 0,
+  );
+
+  return {
+    lots,
+    totalElements: typeof firstValidTotal === "number" ? firstValidTotal : null,
+  };
 }
 
 function normalizeString(value: unknown): string | null {
@@ -239,8 +288,8 @@ function buildDescription(lot: CopartLot): string {
 export async function fetchCopartSearchPage(
   page: number,
   pageSize: number,
-  searchTerm: string = ""
-): Promise<CopartLot[]> {
+  searchTerm: string = "",
+): Promise<CopartSearchResultPage> {
   const payload: CopartSearchPayload = {
     page,
     size: pageSize,
@@ -256,10 +305,10 @@ export async function fetchCopartSearchPage(
   try {
     const response = await httpClient.post<CopartSearchResponse>(
       COPART_SEARCH_URL,
-      payload
+      payload,
     );
 
-    return extractContent(response.data);
+    return extractSearchResult(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       const status = error.response?.status ?? "sem status";
@@ -279,10 +328,10 @@ export async function fetchCopartSearchPage(
                 freeFormSearch: searchTerm,
                 query: searchTerm,
               },
-            }
+            },
           );
 
-          return extractContent(fallbackResponse.data);
+          return extractSearchResult(fallbackResponse.data);
         } catch (fallbackError) {
           const fallbackMessage =
             fallbackError instanceof Error
@@ -306,15 +355,32 @@ export async function fetchCopartInventory(options?: {
   maxPages?: number;
   pageSize?: number;
   searchTerm?: string;
+  maxItems?: number;
 }): Promise<CopartLot[]> {
-  const pageSize = Math.max(1, options?.pageSize ?? DEFAULT_PAGE_SIZE);
-  const maxPages = Math.max(1, options?.maxPages ?? DEFAULT_MAX_PAGES);
+  const pageSize = Math.max(
+    1,
+    sanitizePositiveInteger(options?.pageSize) ?? DEFAULT_PAGE_SIZE,
+  );
+  const maxPages = Math.max(
+    1,
+    sanitizePositiveInteger(options?.maxPages) ?? DEFAULT_MAX_PAGES,
+  );
   const searchTerm = options?.searchTerm?.trim() ?? "";
+  const maxItems = sanitizePositiveInteger(options?.maxItems);
 
   const inventory: CopartLot[] = [];
+  let totalElements: number | null = null;
 
   for (let page = 0; page < maxPages; page++) {
-    const lots = await fetchCopartSearchPage(page, pageSize, searchTerm);
+    const { lots, totalElements: pageTotal } = await fetchCopartSearchPage(
+      page,
+      pageSize,
+      searchTerm,
+    );
+
+    if (pageTotal !== null && totalElements === null) {
+      totalElements = pageTotal;
+    }
 
     if (lots.length === 0) {
       break;
@@ -322,9 +388,21 @@ export async function fetchCopartInventory(options?: {
 
     inventory.push(...lots);
 
+    if (typeof maxItems === "number" && inventory.length >= maxItems) {
+      return inventory.slice(0, maxItems);
+    }
+
     if (lots.length < pageSize) {
       break;
     }
+
+    if (typeof totalElements === "number" && inventory.length >= totalElements) {
+      break;
+    }
+  }
+
+  if (typeof maxItems === "number") {
+    return inventory.slice(0, maxItems);
   }
 
   return inventory;
