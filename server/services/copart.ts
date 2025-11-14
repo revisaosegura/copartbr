@@ -2,13 +2,73 @@ import axios from "axios";
 
 import type { InsertVehicle } from "../../drizzle/schema";
 
+function parsePositiveInteger(value: string | undefined, fallback: number): number {
+  if (!value) return fallback;
+
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+function parseOptionalPositiveInteger(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    return undefined;
+  }
+
+  return parsed;
+}
+
+function sanitizeMaxItems(value: number | undefined): number | undefined {
+  if (typeof value !== "number") return undefined;
+
+  if (!Number.isFinite(value)) {
+    return undefined;
+  }
+
+  const rounded = Math.floor(value);
+  if (rounded <= 0) {
+    return undefined;
+  }
+
+  return rounded;
+}
+
 const COPART_SEARCH_URL =
   process.env.COPART_SEARCH_URL ?? "https://www.copart.com.br/public/data/lots/search";
 const COPART_SEARCH_FALLBACK_URL =
   process.env.COPART_SEARCH_FALLBACK_URL ??
   "https://www.copart.com.br/public/data/lots/search-results";
-const DEFAULT_PAGE_SIZE = Number.parseInt(process.env.COPART_PAGE_SIZE ?? "100", 10);
-const DEFAULT_MAX_PAGES = Number.parseInt(process.env.COPART_MAX_PAGES ?? "5", 10);
+const DEFAULT_PAGE_SIZE = parsePositiveInteger(process.env.COPART_PAGE_SIZE, 100);
+const DEFAULT_MAX_PAGES = parsePositiveInteger(process.env.COPART_MAX_PAGES, 5);
+
+const APIFY_API_BASE_URL = process.env.APIFY_API_BASE_URL ?? "https://api.apify.com/v2";
+const APIFY_ACTOR_ID =
+  process.env.APIFY_ACTOR_ID ?? "parseforge~copart-public-search-scraper";
+const APIFY_TOKEN = process.env.APIFY_API_TOKEN ?? process.env.APIFY_TOKEN ?? null;
+const APIFY_START_URL =
+  process.env.COPART_APIFY_START_URL ??
+  "https://www.copart.com/lotSearchResults/?freeFormSearch=&query=";
+const APIFY_DATASET_PAGE_SIZE = Math.min(
+  1000,
+  parsePositiveInteger(process.env.COPART_APIFY_PAGE_SIZE, 1000),
+);
+const APIFY_RUN_POLL_INTERVAL_MS = parsePositiveInteger(
+  process.env.COPART_APIFY_POLL_INTERVAL_MS,
+  5000,
+);
+const APIFY_RUN_TIMEOUT_MS = Math.max(
+  APIFY_RUN_POLL_INTERVAL_MS,
+  parsePositiveInteger(process.env.COPART_APIFY_TIMEOUT_MS, 600_000),
+);
+const APIFY_DEFAULT_MAX_ITEMS = parseOptionalPositiveInteger(
+  process.env.COPART_APIFY_MAX_ITEMS,
+);
 
 interface CopartSearchPayload {
   page: number;
@@ -47,6 +107,238 @@ const httpClient = axios.create({
     Referer: "https://www.copart.com.br/",
   },
 });
+
+const apifyClient = axios.create({
+  baseURL: APIFY_API_BASE_URL,
+  timeout: Math.max(60_000, APIFY_RUN_POLL_INTERVAL_MS * 2),
+  headers: {
+    Accept: "application/json, text/plain, */*",
+    "Content-Type": "application/json",
+    "User-Agent": "CopartMirror/ApifyClient/1.0",
+  },
+});
+
+interface ApifyRunData {
+  id?: string;
+  status?: string;
+  defaultDatasetId?: string | null;
+}
+
+interface ApifyRunEnvelope {
+  data?: ApifyRunData;
+}
+
+function ensureApifyToken(): string {
+  if (APIFY_TOKEN && APIFY_TOKEN.trim().length > 0) {
+    return APIFY_TOKEN;
+  }
+
+  throw new Error(
+    "[Copart] Token APIFY_API_TOKEN não configurado. Defina a variável de ambiente para habilitar o scraper.",
+  );
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function buildApifyStartUrl(searchTerm: string): string {
+  const trimmed = searchTerm.trim();
+
+  try {
+    const url = new URL(APIFY_START_URL);
+    if (trimmed.length > 0) {
+      url.searchParams.set("freeFormSearch", trimmed);
+      url.searchParams.set("query", trimmed);
+    }
+
+    return url.toString();
+  } catch (error) {
+    console.warn(
+      `[Copart] URL base para o scraper da Apify inválida (${APIFY_START_URL}). Retornando valor bruto.`,
+    );
+
+    if (trimmed.length === 0) {
+      return APIFY_START_URL;
+    }
+
+    const encodedTerm = encodeURIComponent(trimmed);
+    return APIFY_START_URL.includes("?")
+      ? `${APIFY_START_URL}&freeFormSearch=${encodedTerm}&query=${encodedTerm}`
+      : `${APIFY_START_URL}?freeFormSearch=${encodedTerm}&query=${encodedTerm}`;
+  }
+}
+
+async function startApifyActorRun(
+  startUrl: string,
+  maxItems?: number,
+): Promise<{ runId: string; datasetId?: string | null }> {
+  const token = ensureApifyToken();
+  const payload: Record<string, unknown> = { startUrl };
+
+  if (typeof maxItems === "number" && Number.isFinite(maxItems) && maxItems > 0) {
+    payload.maxItems = Math.min(maxItems, 1_000_000);
+  }
+
+  const actorPath = `/acts/${encodeURIComponent(APIFY_ACTOR_ID)}/runs`;
+  const response = await apifyClient.post<ApifyRunEnvelope>(actorPath, payload, {
+    params: { token },
+  });
+
+  const run = response.data?.data;
+  const runId = run?.id;
+
+  if (!runId) {
+    throw new Error("[Copart] Execução do scraper da Apify não retornou um ID de run válido.");
+  }
+
+  return {
+    runId,
+    datasetId: run?.defaultDatasetId ?? null,
+  };
+}
+
+async function waitForApifyRunCompletion(
+  runId: string,
+  initialDatasetId?: string | null,
+): Promise<string> {
+  const token = ensureApifyToken();
+  const encodedRunId = encodeURIComponent(runId);
+  const startTime = Date.now();
+  let datasetId = initialDatasetId ?? null;
+
+  for (;;) {
+    if (Date.now() - startTime > APIFY_RUN_TIMEOUT_MS) {
+      throw new Error(
+        `[Copart] Tempo limite excedido ao aguardar conclusão do scraper na Apify (run ${runId}).`,
+      );
+    }
+
+    const response = await apifyClient.get<ApifyRunEnvelope>(`/actor-runs/${encodedRunId}`, {
+      params: { token },
+    });
+
+    const run = response.data?.data;
+    const status = run?.status?.toUpperCase() ?? "";
+
+    if (run?.defaultDatasetId) {
+      datasetId = run.defaultDatasetId;
+    }
+
+    if (status === "SUCCEEDED" || status === "COMPLETED") {
+      if (!datasetId) {
+        throw new Error(
+          `[Copart] Run ${runId} concluído na Apify, porém nenhum dataset foi disponibilizado.`,
+        );
+      }
+
+      return datasetId;
+    }
+
+    if (["FAILED", "ABORTED", "TIMED_OUT", "ABORTING"].includes(status)) {
+      throw new Error(`[Copart] Execução do scraper na Apify falhou com status ${status}.`);
+    }
+
+    await sleep(APIFY_RUN_POLL_INTERVAL_MS);
+  }
+}
+
+async function fetchApifyDatasetItems(datasetId: string, maxItems?: number): Promise<CopartLot[]> {
+  const token = ensureApifyToken();
+  const encodedDatasetId = encodeURIComponent(datasetId);
+  const items: CopartLot[] = [];
+  let offset = 0;
+
+  for (;;) {
+    const remaining =
+      typeof maxItems === "number" && Number.isFinite(maxItems) ? maxItems - items.length : undefined;
+
+    if (typeof remaining === "number" && remaining <= 0) {
+      break;
+    }
+
+    const limit = typeof remaining === "number"
+      ? Math.min(APIFY_DATASET_PAGE_SIZE, remaining)
+      : APIFY_DATASET_PAGE_SIZE;
+
+    const response = await apifyClient.get<unknown>(`/datasets/${encodedDatasetId}/items`, {
+      params: {
+        token,
+        clean: 1,
+        format: "json",
+        offset,
+        limit,
+      },
+    });
+
+    const rawData = response.data;
+    const batch = Array.isArray(rawData) ? (rawData as CopartLot[]) : [];
+
+    if (batch.length === 0) {
+      break;
+    }
+
+    items.push(...batch);
+    offset += batch.length;
+
+    if (batch.length < limit) {
+      break;
+    }
+  }
+
+  return items;
+}
+
+async function fetchCopartInventoryFromApify(
+  searchTerm: string,
+  maxItems?: number,
+): Promise<CopartLot[]> {
+  const sanitizedMaxItems = sanitizeMaxItems(maxItems) ?? APIFY_DEFAULT_MAX_ITEMS;
+  const startUrl = buildApifyStartUrl(searchTerm);
+
+  console.log(`[Copart] Iniciando coleta via Apify para URL: ${startUrl}`);
+
+  const { runId, datasetId: initialDatasetId } = await startApifyActorRun(
+    startUrl,
+    sanitizedMaxItems,
+  );
+
+  const datasetId = await waitForApifyRunCompletion(runId, initialDatasetId);
+  console.log(`[Copart] Run ${runId} concluído. Dataset: ${datasetId}`);
+
+  const items = await fetchApifyDatasetItems(datasetId, sanitizedMaxItems);
+  console.log(`[Copart] ${items.length} registros retornados pelo scraper da Apify.`);
+
+  return items;
+}
+
+async function fetchCopartInventoryFromCopartApi(options?: {
+  maxPages?: number;
+  pageSize?: number;
+  searchTerm?: string;
+}): Promise<CopartLot[]> {
+  const pageSize = Math.max(1, options?.pageSize ?? DEFAULT_PAGE_SIZE);
+  const maxPages = Math.max(1, options?.maxPages ?? DEFAULT_MAX_PAGES);
+  const searchTerm = options?.searchTerm?.trim() ?? "";
+
+  const inventory: CopartLot[] = [];
+
+  for (let page = 0; page < maxPages; page++) {
+    const lots = await fetchCopartSearchPage(page, pageSize, searchTerm);
+
+    if (lots.length === 0) {
+      break;
+    }
+
+    inventory.push(...lots);
+
+    if (lots.length < pageSize) {
+      break;
+    }
+  }
+
+  return inventory;
+}
 
 function extractContent(response: CopartSearchResponse): CopartLot[] {
   const nestedContent =
@@ -306,28 +598,34 @@ export async function fetchCopartInventory(options?: {
   maxPages?: number;
   pageSize?: number;
   searchTerm?: string;
+  maxItems?: number;
 }): Promise<CopartLot[]> {
-  const pageSize = Math.max(1, options?.pageSize ?? DEFAULT_PAGE_SIZE);
-  const maxPages = Math.max(1, options?.maxPages ?? DEFAULT_MAX_PAGES);
   const searchTerm = options?.searchTerm?.trim() ?? "";
+  const maxItems = sanitizeMaxItems(options?.maxItems);
 
-  const inventory: CopartLot[] = [];
-
-  for (let page = 0; page < maxPages; page++) {
-    const lots = await fetchCopartSearchPage(page, pageSize, searchTerm);
-
-    if (lots.length === 0) {
-      break;
-    }
-
-    inventory.push(...lots);
-
-    if (lots.length < pageSize) {
-      break;
+  if (APIFY_TOKEN && APIFY_TOKEN.trim().length > 0) {
+    try {
+      return await fetchCopartInventoryFromApify(searchTerm, maxItems);
+    } catch (error) {
+      console.error("[Copart] Falha ao coletar dados via Apify:", error);
+      console.warn("[Copart] Utilizando fallback direto na API pública (resultado limitado).");
+      return fetchCopartInventoryFromCopartApi({
+        maxPages: options?.maxPages,
+        pageSize: options?.pageSize,
+        searchTerm,
+      });
     }
   }
 
-  return inventory;
+  console.warn(
+    "[Copart] Token APIFY_API_TOKEN não configurado. Utilizando integração direta com a API pública da Copart.",
+  );
+
+  return fetchCopartInventoryFromCopartApi({
+    maxPages: options?.maxPages,
+    pageSize: options?.pageSize,
+    searchTerm,
+  });
 }
 
 export function transformCopartLot(lot: CopartLot): InsertVehicle {
