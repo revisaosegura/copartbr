@@ -151,6 +151,35 @@ const normalizeString = (value?: string | null): string | null => {
   return trimmed.length > 0 ? trimmed : null;
 };
 
+const parseAuctionDate = (value: unknown): Date | null => {
+  if (value instanceof Date) {
+    return value;
+  }
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    const timestamp = value > 1_000_000_000_000 ? value : value * 1000;
+    const date = new Date(timestamp);
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim();
+    if (normalized.length === 0) {
+      return null;
+    }
+
+    const numeric = Number(normalized);
+    if (!Number.isNaN(numeric)) {
+      return parseAuctionDate(numeric);
+    }
+
+    const parsed = new Date(normalized);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  return null;
+};
+
 export function transformApifyVehicle(
   apifyVehicle: ApifyVehicleData
 ): InsertVehicle {
@@ -158,6 +187,7 @@ export function transformApifyVehicle(
   const mileage =
     parseInteger(apifyVehicle.odometer_reading ?? apifyVehicle.odometer) ??
     undefined;
+  const auctionDate = parseAuctionDate(apifyVehicle.auction_date);
 
   const locationCandidates = [
     normalizeString(apifyVehicle.sale_location),
@@ -205,6 +235,9 @@ export function transformApifyVehicle(
     transmission: normalizeString(apifyVehicle.transmission),
     color: normalizeString(apifyVehicle.color),
     condition: normalizeString(apifyVehicle.condition),
+    auctionDate: auctionDate ?? null,
+    auctionTime: normalizeString(apifyVehicle.auction_time),
+    saleStatus: normalizeString(apifyVehicle.sale_status),
     featured: 0,
     active: 1,
   };

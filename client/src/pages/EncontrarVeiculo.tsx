@@ -1,6 +1,6 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Printer, Mail, Heart, BarChart2, Settings, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
@@ -15,24 +15,37 @@ export default function EncontrarVeiculo() {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Buscar veículos do backend
-  const { data: vehicles, isLoading } = trpc.admin.vehicles.list.useQuery();
-  
-  // Aplicar filtros
-  const filteredVehicles = vehicles?.filter(vehicle => {
-    if (selectedMakes.length > 0 && vehicle.brand && !selectedMakes.includes(vehicle.brand)) return false;
-    if (selectedYears.length > 0 && vehicle.year && !selectedYears.includes(vehicle.year.toString())) return false;
-    if (selectedConditions.length > 0 && vehicle.condition && !selectedConditions.includes(vehicle.condition)) return false;
-    return true;
-  }) || [];
-  
-  // Paginar resultados filtrados
-  const paginatedVehicles = filteredVehicles.slice(
-    (currentPage - 1) * resultsPerPage,
-    currentPage * resultsPerPage
+  const yearsFilter = useMemo(
+    () =>
+      selectedYears
+        .map((year) => Number(year))
+        .filter((year) => Number.isFinite(year)),
+    [selectedYears]
   );
 
-  const totalVehicles = vehicles?.length || 0;
-  const totalPages = Math.ceil(totalVehicles / resultsPerPage);
+  const queryInput = {
+    brands: selectedMakes.length > 0 ? selectedMakes : undefined,
+    years: yearsFilter.length > 0 ? yearsFilter : undefined,
+    conditions: selectedConditions.length > 0 ? selectedConditions : undefined,
+    limit: resultsPerPage,
+    offset: (currentPage - 1) * resultsPerPage,
+  } as const;
+
+  const { data, isLoading } = trpc.vehicles.list.useQuery(queryInput, {
+    keepPreviousData: true,
+  });
+
+  const vehicles = data?.items ?? [];
+  const totalVehicles = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalVehicles / resultsPerPage));
+  const startIndex = totalVehicles === 0 ? 0 : (currentPage - 1) * resultsPerPage + 1;
+  const endIndex = totalVehicles === 0 ? 0 : Math.min(currentPage * resultsPerPage, totalVehicles);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   // Filtros disponíveis
   const makes = ["HONDA", "FORD", "VOLKSWAGEN", "FIAT", "CHEVROLET", "TOYOTA", "HYUNDAI", "NISSAN"];
@@ -43,24 +56,28 @@ export default function EncontrarVeiculo() {
     setSelectedMakes(prev =>
       prev.includes(make) ? prev.filter(m => m !== make) : [...prev, make]
     );
+    setCurrentPage(1);
   };
 
   const toggleYear = (year: string) => {
     setSelectedYears(prev =>
       prev.includes(year) ? prev.filter(y => y !== year) : [...prev, year]
     );
+    setCurrentPage(1);
   };
 
   const toggleCondition = (condition: string) => {
     setSelectedConditions(prev =>
       prev.includes(condition) ? prev.filter(c => c !== condition) : [...prev, condition]
     );
+    setCurrentPage(1);
   };
 
   const clearAllFilters = () => {
     setSelectedMakes([]);
     setSelectedYears([]);
     setSelectedConditions([]);
+    setCurrentPage(1);
   };
 
   return (
@@ -210,14 +227,16 @@ export default function EncontrarVeiculo() {
               <div className="bg-white rounded shadow-md p-3 mb-4 flex items-center justify-between text-sm">
                 <div className="flex items-center gap-4">
                   <span>
-                    Mostrando {(currentPage - 1) * resultsPerPage + 1} a{" "}
-                    {Math.min(currentPage * resultsPerPage, totalVehicles)} de {totalVehicles} registros
+                    Mostrando {startIndex} a {endIndex} de {totalVehicles} registros
                   </span>
                   <div className="flex items-center gap-2">
                     <label>Mostrar</label>
                     <select
                       value={resultsPerPage}
-                      onChange={(e) => setResultsPerPage(Number(e.target.value))}
+                      onChange={(e) => {
+                        setResultsPerPage(Number(e.target.value));
+                        setCurrentPage(1);
+                      }}
                       className="border rounded px-2 py-1"
                     >
                       <option value={20}>20</option>
@@ -256,8 +275,8 @@ export default function EncontrarVeiculo() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {paginatedVehicles && paginatedVehicles.length > 0 ? (
-                    paginatedVehicles.map((vehicle) => (
+                  {vehicles && vehicles.length > 0 ? (
+                    vehicles.map((vehicle) => (
                       <div key={vehicle.id} className="bg-white rounded shadow-md p-4 flex gap-4 hover:shadow-lg transition-shadow">
                         {/* Imagem do Veículo */}
                         <div className="w-48 h-36 flex-shrink-0">
@@ -295,6 +314,17 @@ export default function EncontrarVeiculo() {
                               <span className="font-semibold">Localização:</span>
                               <p className="text-xs truncate">{vehicle.location}</p>
                             </div>
+                            <div>
+                              <span className="font-semibold">Leilão:</span>
+                              <p className="text-xs truncate">
+                                {vehicle.auctionDate
+                                  ? new Date(vehicle.auctionDate).toLocaleString('pt-BR', {
+                                      dateStyle: 'short',
+                                      timeStyle: 'short',
+                                    })
+                                  : 'Data não disponível'}
+                              </p>
+                            </div>
                           </div>
 
                           <div className="flex items-center justify-between mt-4">
@@ -302,14 +332,16 @@ export default function EncontrarVeiculo() {
                               <div>
                                 <span className="text-xs text-gray-600">Lance Atual:</span>
                                 <p className="text-lg font-bold text-[#003087]">
-                                  R$ {vehicle.currentBid?.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '0,00'}
-                                </p>
-                              </div>
-                              <div>
-                                <span className="text-xs text-gray-600">Data de Atualização:</span>
-                                <p className="text-sm">{new Date(vehicle.updatedAt).toLocaleDateString('pt-BR')}</p>
-                              </div>
+                                  R$ {(vehicle.currentBid / 100).toLocaleString('pt-BR', {
+                                    minimumFractionDigits: 2,
+                                  })}
+                              </p>
                             </div>
+                            <div>
+                              <span className="text-xs text-gray-600">Data de Atualização:</span>
+                              <p className="text-sm">{new Date(vehicle.updatedAt).toLocaleDateString('pt-BR')}</p>
+                            </div>
+                          </div>
 
                             <Link href={`/veiculo/${vehicle.id}`}>
                               <Button className="bg-[#003087] hover:bg-[#002366] text-white">

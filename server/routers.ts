@@ -35,15 +35,22 @@ export const appRouter = router({
 
     list: publicProcedure
       .input(z.object({
-        brand: z.string().optional(),
-        year: z.number().optional(),
-        condition: z.string().optional(),
+        brands: z.array(z.string()).optional(),
+        years: z.array(z.number()).optional(),
+        conditions: z.array(z.string()).optional(),
         limit: z.number().optional().default(20),
         offset: z.number().optional().default(0),
-      }))
+      }).optional())
       .query(async ({ input }) => {
         const { getFilteredVehicles } = await import('./db');
-        return await getFilteredVehicles(input);
+        return await getFilteredVehicles(input ?? {});
+      }),
+
+    upcomingAuctions: publicProcedure
+      .input(z.object({ limit: z.number().min(1).max(50).optional() }).optional())
+      .query(async ({ input }) => {
+        const { getUpcomingAuctions } = await import('./db');
+        return await getUpcomingAuctions(input?.limit);
       }),
 
     getById: publicProcedure
