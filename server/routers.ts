@@ -174,8 +174,8 @@ export const appRouter = router({
           if (ctx.user.role !== 'admin') {
             throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
           }
-          const { syncVehiclesFromApify } = await import('./services/vehicleSync');
-          const result = await syncVehiclesFromApify();
+          const { syncVehiclesFromCopart } = await import('./services/vehicleSync');
+          const result = await syncVehiclesFromCopart();
           return result;
         }),
 

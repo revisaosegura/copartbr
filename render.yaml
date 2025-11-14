@@ -12,10 +12,16 @@ services:
         value: production
       - key: DATABASE_URL
         sync: false
-      - key: APIFY_API_TOKEN
-        sync: false
       - key: JWT_SECRET
         generateValue: true
+      - key: COPART_SEARCH_URL
+        sync: false
+      - key: COPART_SEARCH_FALLBACK_URL
+        sync: false
+      - key: COPART_PAGE_SIZE
+        sync: false
+      - key: COPART_MAX_PAGES
+        sync: false
       - key: OAUTH_SERVER_URL
         sync: false
       - key: STRIPE_SECRET_KEY

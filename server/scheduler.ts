@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { syncVehiclesFromApify, runInitialSync } from './services/vehicleSync';
+import { syncVehiclesFromCopart, runInitialSync } from './services/vehicleSync';
 
 /**
  * Configura o cron job para sincronização automática de veículos
@@ -22,7 +22,7 @@ export function setupVehicleSyncScheduler() {
   cron.schedule(cronExpression, async () => {
     console.log('[Scheduler] Iniciando sincronização agendada...');
     try {
-      const result = await syncVehiclesFromApify();
+      const result = await syncVehiclesFromCopart();
       if (result.success) {
         console.log(`[Scheduler] Sincronização concluída: ${result.vehiclesProcessed} processados, ${result.vehiclesAdded} adicionados, ${result.vehiclesUpdated} atualizados`);
       } else {
@@ -44,7 +44,7 @@ export function setupVehicleSyncScheduler() {
 export async function runSyncNow() {
   console.log('[Scheduler] Executando sincronização manual...');
   try {
-    const result = await syncVehiclesFromApify();
+    const result = await syncVehiclesFromCopart();
     console.log('[Scheduler] Resultado:', result);
     return result;
   } catch (error) {
