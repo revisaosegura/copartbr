@@ -207,7 +207,10 @@ function normalizeCurrencyUnit(unit: string | null | undefined): "cents" | "reai
   return null;
 }
 
-function toCents(value: number | null, unit?: string | null): number {
+function toCents(
+  value: number | null,
+  ...unitHints: Array<string | null | undefined>
+): number {
   if (value === null || Number.isNaN(value)) {
     return 0;
   }
@@ -218,7 +221,9 @@ function toCents(value: number | null, unit?: string | null): number {
     return 0;
   }
 
-  const normalizedUnit = normalizeCurrencyUnit(unit);
+  const normalizedUnit = unitHints
+    .map((hint) => normalizeCurrencyUnit(hint))
+    .find((unit): unit is "cents" | "reais" => unit !== null);
 
   if (normalizedUnit === "cents") {
     return Math.round(value);
@@ -401,16 +406,25 @@ export function transformCopartLot(lot: CopartLot): InsertVehicle {
     "bbid",
   ]);
 
-  const currentBidUnit = pickString(lot, [
+  const currentBidCurrency = pickString(lot, [
     "currentBidCurrency",
     "currentBidCurrencyCode",
-    "currentBidUnit",
-    "current_bid_unit",
     "currency",
     "currencyCode",
     "currency_code",
+  ]);
+
+  const currentBidUnit = pickString(lot, [
+    "currentBidUnit",
+    "current_bid_unit",
     "cu",
+  ]);
+
+  const currentBidAmountUnit = pickString(lot, [
     "currentBidAmountUnit",
+  ]);
+
+  const currentBidAmountType = pickString(lot, [
     "currentBidAmountType",
   ]);
 
@@ -459,7 +473,13 @@ export function transformCopartLot(lot: CopartLot): InsertVehicle {
     ])
   );
 
-  const currentBid = toCents(currentBidValue ?? 0, currentBidUnit);
+  const currentBid = toCents(
+    currentBidValue ?? 0,
+    currentBidCurrency,
+    currentBidUnit,
+    currentBidAmountUnit,
+    currentBidAmountType,
+  );
 
   return {
     lotNumber,
