@@ -221,15 +221,19 @@ function toCents(
     return 0;
   }
 
-  const normalizedUnit = unitHints
+  const normalizedUnits = unitHints
     .map((hint) => normalizeCurrencyUnit(hint))
-    .find((unit): unit is "cents" | "reais" => unit !== null);
+    .filter((unit): unit is "cents" | "reais" => unit !== null);
 
-  if (normalizedUnit === "cents") {
+  if (normalizedUnits.includes("cents")) {
     return Math.round(value);
   }
 
   // Por padrão assumimos que os valores da Copart estão em reais (BRL)
+  if (normalizedUnits.includes("reais")) {
+    return Math.round(value * 100);
+  }
+
   return Math.round(value * 100);
 }
 
