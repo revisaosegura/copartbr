@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { useDebounce } from "@/hooks/useDebounce";
-import NotificationBell from "@/components/NotificationBell";
 
 export default function Header() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,6 +12,7 @@ export default function Header() {
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [showServiceAlert, setShowServiceAlert] = useState(true);
   const [, setLocation] = useLocation();
   const searchRef = useRef<HTMLDivElement>(null);
   
@@ -57,7 +57,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[#003087] text-white">
+    <header className="bg-gradient-to-r from-[#001c45] via-[#012a69] to-[#0142a7] text-white">
       {/* Top Bar */}
       <div className="container py-2 md:py-3 flex items-center justify-between gap-2">
         {/* Mobile Menu Button */}
@@ -74,13 +74,16 @@ export default function Header() {
 
         {/* Search Bar */}
         <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
-          <div className="relative flex items-center bg-white rounded" ref={searchRef}>
-            <Search className="absolute left-3 text-gray-400" size={20} />
+          <div
+            className="relative flex w-full items-center rounded-xl bg-white shadow-[0_18px_45px_-20px_rgba(6,25,78,0.8)]"
+            ref={searchRef}
+          >
+            <Search className="absolute left-4 text-[#003087]" size={20} />
             <form onSubmit={handleSearch} className="flex w-full">
               <input
                 type="text"
-                placeholder="Procurar por Marca, Modelo, Descrição, Chassis ou Número do Lote"
-                className="w-full pl-10 pr-4 py-2 text-gray-900 rounded-l focus:outline-none"
+                placeholder="Procurar por Marca, Modelo, Descrição, Chassi ou Número do Lote"
+                className="w-full rounded-l-xl border border-transparent bg-transparent pl-12 pr-4 py-3 text-sm text-gray-900 placeholder:text-gray-500 focus:outline-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => {
@@ -89,7 +92,10 @@ export default function Header() {
                   }
                 }}
               />
-              <Button type="submit" className="bg-[#FDB714] hover:bg-[#e5a512] text-black font-semibold px-6 rounded-l-none">
+              <Button
+                type="submit"
+                className="rounded-l-none rounded-r-xl bg-[#FDB714] px-6 text-[#002366] font-semibold hover:bg-[#e5a512]"
+              >
                 Buscar
               </Button>
             </form>
@@ -143,19 +149,25 @@ export default function Header() {
         {/* Right Section - Mobile Buttons */}
         <div className="flex lg:hidden items-center gap-2">
           <Link href="/registrar">
-            <Button size="sm" className="bg-[#FDB714] hover:bg-[#e5a512] text-black border-none font-semibold text-xs px-3 py-1">
+            <Button
+              size="sm"
+              className="bg-[#FDB714] hover:bg-[#e5a512] text-[#002366] font-semibold border-none text-xs px-3 py-1 rounded"
+            >
               Registrar
             </Button>
           </Link>
           <Link href="/entrar">
-            <Button size="sm" variant="outline" className="border-white text-white hover:bg-white hover:text-[#003087] text-xs px-3 py-1">
+            <Button
+              size="sm"
+              className="bg-[#0050b5] hover:bg-[#003f8c] text-white font-semibold border-none text-xs px-3 py-1 rounded"
+            >
               Entrar
             </Button>
           </Link>
         </div>
 
         {/* Right Section - Desktop */}
-        <div className="hidden lg:flex items-center gap-4">
+        <div className="hidden lg:flex items-center gap-5">
           <div className="relative">
             <button
               className="flex items-center gap-2 hover:opacity-80"
@@ -190,16 +202,14 @@ export default function Header() {
               </div>
             )}
           </div>
-          <NotificationBell />
           <Link href="/registrar">
-            <Button variant="outline" className="bg-[#FDB714] hover:bg-[#e5a512] text-black border-none font-semibold">
+            <Button className="bg-[#FDB714] hover:bg-[#e5a512] text-[#002366] font-semibold border-none px-5 py-2 rounded-md">
               Registrar
             </Button>
           </Link>
           <div className="relative">
-            <Button 
-              variant="outline" 
-              className="border-white text-white hover:bg-white hover:text-[#003087]"
+            <Button
+              className="bg-[#0050b5] hover:bg-[#003f8c] text-white font-semibold border-none px-5 py-2 rounded-md"
               onClick={() => setShowLoginMenu(!showLoginMenu)}
             >
               Entrar
@@ -397,6 +407,23 @@ export default function Header() {
           </ul>
         </div>
       </nav>
+      {showServiceAlert && (
+        <div className="bg-[#d35f02] text-white">
+          <div className="container flex flex-col items-center justify-between gap-2 py-2 text-xs font-medium md:flex-row md:text-sm">
+            <span className="text-center md:text-left">
+              No dia 14/11, devido ao feriado municipal, nossa unidade de Goiânia não estará em funcionamento.
+            </span>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-full bg-white/10 p-1.5 transition hover:bg-white/20"
+              onClick={() => setShowServiceAlert(false)}
+              aria-label="Fechar aviso"
+            >
+              <X size={14} />
+            </button>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

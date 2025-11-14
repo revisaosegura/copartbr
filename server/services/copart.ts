@@ -2,6 +2,43 @@ import axios from "axios";
 
 import type { InsertVehicle } from "../../drizzle/schema";
 
+function parsePositiveInteger(value: string | undefined, fallback: number): number {
+  if (!value) return fallback;
+
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return parsed;
+}
+
+function parseOptionalPositiveInteger(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    return undefined;
+  }
+
+  return parsed;
+}
+
+function sanitizeMaxItems(value: number | undefined): number | undefined {
+  if (typeof value !== "number") return undefined;
+
+  if (!Number.isFinite(value)) {
+    return undefined;
+  }
+
+  const rounded = Math.floor(value);
+  if (rounded <= 0) {
+    return undefined;
+  }
+
+  return rounded;
+}
+
 const COPART_SEARCH_URL =
   process.env.COPART_SEARCH_URL ?? "https://www.copart.com.br/public/data/lots/search";
 const COPART_SEARCH_FALLBACK_URL =
@@ -405,7 +442,15 @@ export async function fetchCopartInventory(options?: {
     return inventory.slice(0, maxItems);
   }
 
-  return inventory;
+  console.warn(
+    "[Copart] Token APIFY_API_TOKEN não configurado. Utilizando integração direta com a API pública da Copart.",
+  );
+
+  return fetchCopartInventoryFromCopartApi({
+    maxPages: options?.maxPages,
+    pageSize: options?.pageSize,
+    searchTerm,
+  });
 }
 
 export function transformCopartLot(lot: CopartLot): InsertVehicle {

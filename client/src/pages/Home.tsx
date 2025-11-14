@@ -1,17 +1,15 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-  ArrowRight,
   CalendarDays,
+  Check,
   ChevronRight,
   Facebook,
   Instagram,
   Linkedin,
   MapPin,
-  Search,
-  ShieldCheck,
   Twitter,
   Youtube,
 } from "lucide-react";
@@ -24,44 +22,29 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 
-const HERO_STATS = [
-  { label: "Veículos disponíveis hoje", value: "12.600+" },
-  { label: "Pátios pelo Brasil", value: "14" },
-  { label: "Lotes publicados por dia", value: "500" },
-];
-
 const HERO_CARDS = [
   {
     title: "Venda Direta",
-    highlight: "Disponível 24 horas por dia",
-    bullets: [
-      "Veículos com documentação e laudo",
-      "Negociação imediata sem disputa",
-      "Condição pronta para lojistas",
+    features: [
+      "Disponível 24h por dia",
+      "Veículos com laudo",
+      "Negociação intermediada",
+      "Diversas opções com garantia",
     ],
-    cta: { label: "Comprar", href: "/buscar?venda=direta" },
+    primaryCta: { label: "Comprar", href: "/buscar?venda=direta" },
+    secondaryCta: { label: "Vender", href: "/vender-meu-carro" },
   },
   {
     title: "Leilão",
-    highlight: "Lotes novos diariamente",
-    bullets: [
-      "Lances em tempo real com streaming",
-      "Veículos de seguradoras e frotas",
-      "Diversas categorias e estados",
+    features: [
+      "+ de 70 leilões mensais",
+      "De Bancos, Seguradoras, e mais",
+      "Faça seus lances online",
+      "Veículos com procedência",
     ],
-    cta: { label: "Participar", href: "/leiloes" },
+    primaryCta: { label: "Comprar", href: "/leiloes" },
+    secondaryCta: { label: "Vender", href: "/vender-meu-carro" },
   },
-];
-
-const QUICK_FILTERS = [
-  "Hatch",
-  "Sedan",
-  "SUV",
-  "Picapes",
-  "Motocicletas",
-  "Caminhões",
-  "Pequena Monta",
-  "Grande Monta",
 ];
 
 const OPPORTUNITY_CARDS = [
@@ -351,7 +334,6 @@ const PARTNER_SLIDES = [
 
 export default function Home() {
   const [, setLocation] = useLocation();
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeInventoryTab, setActiveInventoryTab] = useState<InventoryTabKey>("popular");
 
   const { data: auctions, isLoading: isLoadingAuctions } =
@@ -362,13 +344,6 @@ export default function Home() {
 
   const featuredVehicles = vehiclesData?.items ?? [];
   const liveAuctionsCount = auctions?.length ?? 0;
-
-  const handleSearch = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const trimmed = searchTerm.trim();
-    if (!trimmed) return;
-    setLocation(`/buscar?q=${encodeURIComponent(trimmed)}`);
-  };
 
   const handleQuickFilter = (filter: string) => {
     setLocation(`/buscar?q=${encodeURIComponent(filter)}`);
@@ -381,97 +356,60 @@ export default function Home() {
       <Header />
 
       <main className="flex-1">
-        <section className="bg-[#002a6b] text-white relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#000c26] via-[#001a47] to-[#002a6b] opacity-90" aria-hidden="true" />
-          <div className="relative container py-10 lg:py-16">
-            <div className="bg-[#fdb714] text-[#001b45] text-xs font-semibold uppercase tracking-[0.2em] inline-flex px-4 py-2 rounded-full mb-6">
-              Plataforma oficial Copart Brasil
-            </div>
+        <section className="relative overflow-hidden bg-[#041238] text-white">
+          <div className="absolute inset-0">
+            <img
+              src="/car3.jpg"
+              alt="Showroom Copart"
+              className="h-full w-full object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#030b21] via-[#031c52]/95 to-[#0d45b8]/90" aria-hidden="true" />
+          </div>
 
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,620px)_1fr] items-start">
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <h1 className="text-4xl md:text-5xl lg:text-[56px] font-bold leading-tight">
-                    Conectando compradores e vendedores ao redor do mundo.
-                  </h1>
-                  <p className="text-lg md:text-xl text-white/80 max-w-2xl">
-                    São mais de 12.600 veículos com fotos de alta qualidade, relatórios completos e tecnologia Copart 360°. Cadastre-se, acompanhe os lotes e dê seu lance de qualquer lugar.
-                  </p>
-                </div>
-
-                <form onSubmit={handleSearch} className="bg-white/10 backdrop-blur rounded-2xl p-4 md:p-5 space-y-3">
-                  <label className="text-xs uppercase tracking-widest font-semibold text-white/70 block">
-                    Pesquisar inventário
-                  </label>
-                  <div className="relative flex flex-col sm:flex-row gap-3">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#003087]" size={18} />
-                      <input
-                        value={searchTerm}
-                        onChange={event => setSearchTerm(event.target.value)}
-                        placeholder="Procurar por Marca, Modelo, Descrição, Chassi ou Número do Lote"
-                        className="w-full rounded-xl border border-white/40 bg-white text-gray-900 placeholder:text-gray-500 py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-[#fdb714]"
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      className="bg-[#fdb714] hover:bg-[#e7a90f] text-black font-semibold px-8 py-3 rounded-xl"
-                    >
-                      Buscar
-                    </Button>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs uppercase tracking-widest text-white/60 font-semibold">Pesquisas rápidas:</span>
-                    {QUICK_FILTERS.map(filter => (
-                      <button
-                        key={filter}
-                        type="button"
-                        onClick={() => handleQuickFilter(filter)}
-                        className="bg-white/10 hover:bg-white/20 text-white text-sm font-medium px-3 py-1 rounded-full transition"
-                      >
-                        {filter}
-                      </button>
-                    ))}
-                  </div>
-                </form>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  {HERO_STATS.map(stat => (
-                    <div key={stat.label} className="bg-white/10 border border-white/10 rounded-2xl px-5 py-4">
-                      <p className="text-3xl font-bold text-white">{stat.value}</p>
-                      <p className="text-sm text-white/70">{stat.label}</p>
-                    </div>
-                  ))}
-                </div>
+          <div className="relative container py-16 lg:py-24">
+            <div className="grid gap-12 lg:grid-cols-[minmax(0,560px)_minmax(0,460px)] items-center">
+              <div className="space-y-6">
+                <h1 className="text-4xl md:text-5xl lg:text-[56px] font-bold leading-tight max-w-2xl">
+                  Conectando <span className="text-[#fdb714]">compradores</span> e <span className="text-[#fdb714]">vendedores</span>{" "}
+                  ao redor do mundo.
+                </h1>
+                <p className="text-lg md:text-xl text-white/85 max-w-xl">
+                  São + de <span className="text-[#fdb714]">12,640</span> veículos disponíveis para compra online. De automóveis a
+                  caminhões, motocicletas e muito mais.
+                </p>
               </div>
 
-              <div className="grid gap-6">
+              <div className="grid gap-6 sm:grid-cols-2">
                 {HERO_CARDS.map(card => (
-                  <div key={card.title} className="bg-white text-[#001b45] rounded-3xl shadow-xl p-7 space-y-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <h2 className="text-2xl font-bold">{card.title}</h2>
-                      <Badge className="bg-[#001b45] text-white px-3 py-1 rounded-full text-xs uppercase tracking-widest">
-                        Copart Brasil
-                      </Badge>
+                  <div
+                    key={card.title}
+                    className="rounded-[28px] bg-[#071d4a]/95 shadow-[0_25px_60px_-25px_rgba(8,24,66,0.85)] overflow-hidden"
+                  >
+                    <div className="space-y-4 px-7 pt-7 pb-6">
+                      <h2 className="text-2xl font-bold text-[#fdb714]">{card.title}</h2>
+                      <ul className="space-y-2 text-sm text-white/90">
+                        {card.features.map(feature => (
+                          <li key={feature} className="flex items-start gap-2">
+                            <Check className="mt-0.5 h-4 w-4 text-[#fdb714]" />
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                    <p className="text-sm font-semibold uppercase text-[#0050b5] tracking-widest">
-                      {card.highlight}
-                    </p>
-                    <ul className="space-y-2 text-sm text-[#002a6b]">
-                      {card.bullets.map(item => (
-                        <li key={item} className="flex items-start gap-2">
-                          <ShieldCheck className="mt-1 h-4 w-4 text-[#0050b5]" />
-                          <span>{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      className="bg-[#003087] hover:bg-[#001f5a] text-white font-semibold rounded-xl"
-                      onClick={() => setLocation(card.cta.href)}
-                    >
-                      {card.cta.label}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
+                    <div className="bg-white px-6 pb-6 pt-4 flex flex-col gap-3">
+                      <Button
+                        className="h-11 rounded-xl bg-[#fdb714] text-[#0b2a64] font-semibold hover:bg-[#e7a90f]"
+                        onClick={() => setLocation(card.primaryCta.href)}
+                      >
+                        {card.primaryCta.label}
+                      </Button>
+                      <Button
+                        className="h-11 rounded-xl bg-[#fdb714] text-[#0b2a64] font-semibold hover:bg-[#e7a90f]"
+                        onClick={() => setLocation(card.secondaryCta.href)}
+                      >
+                        {card.secondaryCta.label}
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
