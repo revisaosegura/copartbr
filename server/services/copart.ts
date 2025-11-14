@@ -2,18 +2,7 @@ import axios from "axios";
 
 import type { InsertVehicle } from "../../drizzle/schema";
 
-function parsePositiveInteger(value: string | undefined, fallback: number): number {
-  if (!value) return fallback;
-
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed) || parsed <= 0) {
-    return fallback;
-  }
-
-  return parsed;
-}
-
-function parseOptionalPositiveInteger(value: string | undefined): number | undefined {
+function parsePositiveInteger(value: string | undefined): number | undefined {
   if (!value) return undefined;
 
   const parsed = Number.parseInt(value, 10);
@@ -22,6 +11,13 @@ function parseOptionalPositiveInteger(value: string | undefined): number | undef
   }
 
   return parsed;
+}
+
+function parsePositiveIntegerOrFallback(
+  value: string | undefined,
+  fallback: number,
+): number {
+  return parsePositiveInteger(value) ?? fallback;
 }
 
 function sanitizeMaxItems(value: number | undefined): number | undefined {
@@ -45,22 +41,9 @@ const COPART_SEARCH_FALLBACK_URL =
   process.env.COPART_SEARCH_FALLBACK_URL ??
   "https://www.copart.com.br/public/data/lots/search-results";
 
-function parsePositiveInteger(value?: string): number | undefined {
-  if (!value) {
-    return undefined;
-  }
-
-  const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    return undefined;
-  }
-
-  return parsed;
-}
-
-const DEFAULT_PAGE_SIZE = parsePositiveInteger(process.env.COPART_PAGE_SIZE) ?? 100;
+const DEFAULT_PAGE_SIZE = parsePositiveIntegerOrFallback(process.env.COPART_PAGE_SIZE, 100);
 const DEFAULT_MAX_PAGES =
-  parsePositiveInteger(process.env.COPART_MAX_PAGES) ?? Number.POSITIVE_INFINITY;
+  parsePositiveIntegerOrFallback(process.env.COPART_MAX_PAGES, Number.POSITIVE_INFINITY);
 
 interface CopartSearchPayload {
   page: number;
