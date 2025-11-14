@@ -5,6 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { X, Check, Bell, DollarSign, Calendar, Star } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 interface NotificationCenterProps {
   onClose: () => void;
@@ -13,10 +14,14 @@ interface NotificationCenterProps {
 export default function NotificationCenter({ onClose }: NotificationCenterProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const utils = trpc.useUtils();
+  const { user } = useAuth();
+  const isAuthenticated = Boolean(user);
 
   // Buscar notificações
   const { data: notifications, isLoading } = trpc.notifications.getAll.useQuery({
     limit: 20,
+  }, {
+    enabled: isAuthenticated,
   });
 
   // Marcar como lida
