@@ -151,6 +151,8 @@
 - [x] Configurar cron job para atualização a cada 4 horas
 - [x] Atualizar frontend para usar dados reais
 - [x] Testar sincronização completa
+- [x] Migrar sincronização para fonte oficial da Copart Brasil
+- [x] Remover dependências da API da Apify
 
 ## Análise Completa do Site Real
 - [x] Mapear todos os menus e sub-menus do header
@@ -205,6 +207,7 @@
 - [x] Adicionar seção "Quem é a Copart?"
 - [x] Adicionar seção de categorias (Venda Direta, Automóveis, Caminhões, Motocicletas)
 - [x] Conectar listagem de veículos aos dados reais do Apify
+- [x] Conectar listagem de veículos aos dados em tempo real da Copart
 - [x] Implementar filtros funcionais na listagem
 - [x] Implementar sistema de lances em tempo real com Socket.IO
 - [x] Adicionar notificações de lances

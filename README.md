@@ -8,7 +8,7 @@ Clone completo do site Copart com sistema de leilões de veículos em tempo real
 - **Busca Avançada** - Busca por marca, modelo, chassis/VIN e número do lote
 - **Sistema de Notificações** - Notificações personalizadas para novos lances, mudanças de preço e lembretes
 - **Painel Administrativo** - Gerenciamento completo de veículos e configurações
-- **Sincronização Automática** - Integração com Apify para atualização de dados a cada 4 horas
+- **Sincronização Automática** - Espelhamento direto da Copart Brasil atualizado a cada 4 horas
 - **Autenticação OAuth** - Sistema de login seguro
 - **Responsivo** - Design totalmente responsivo para mobile e desktop
 
@@ -33,7 +33,7 @@ Clone completo do site Copart com sistema de leilões de veículos em tempo real
 - **Node-cron** - Agendamento de tarefas
 
 ### Integrações
-- **Apify** - Web scraping para sincronização de veículos
+- **Copart Brasil** - Coleta direta dos veículos e leilões oficiais
 - **Stripe** - Pagamentos (configurado mas não implementado)
 - **OAuth** - Autenticação
 
@@ -84,8 +84,11 @@ O projeto está configurado para deploy automático no Render através do arquiv
 ### Variáveis de Ambiente Necessárias:
 
 - `DATABASE_URL` - URL de conexão com MySQL (obrigatório)
-- `APIFY_API_TOKEN` - Token da API Apify (opcional, para sincronização)
 - `JWT_SECRET` - Chave secreta para JWT (gerada automaticamente)
+- `COPART_SEARCH_URL` - URL da pesquisa pública da Copart (opcional)
+- `COPART_SEARCH_FALLBACK_URL` - Endpoint alternativo da Copart usado como fallback (opcional)
+- `COPART_PAGE_SIZE` - Quantidade de registros por página na coleta (opcional)
+- `COPART_MAX_PAGES` - Número máximo de páginas coletadas por sincronização (opcional)
 - `OAUTH_SERVER_URL` - URL do servidor OAuth (opcional)
 - `STRIPE_SECRET_KEY` - Chave secreta Stripe (opcional)
 - `STRIPE_WEBHOOK_SECRET` - Secret do webhook Stripe (opcional)
@@ -137,7 +140,7 @@ copartbr/
 │       └── lib/        # Utilitários
 ├── server/             # Backend Node.js
 │   ├── _core/         # Funcionalidades core
-│   ├── services/      # Serviços (Apify, sync)
+│   ├── services/      # Serviços (Copart, sincronização)
 │   ├── routers.ts     # Rotas tRPC
 │   ├── socket.ts      # Configuração Socket.IO
 │   └── db.ts          # Funções do banco de dados

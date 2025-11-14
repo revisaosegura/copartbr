@@ -1,12 +1,12 @@
-import { getLatestVehicleData, transformApifyVehicle } from './apify';
+import { fetchCopartInventory, transformCopartLot } from './copart';
 import { getDb } from '../db';
 import { vehicles, syncLogs } from '../../drizzle/schema';
 import { eq } from 'drizzle-orm';
 
 /**
- * Sincroniza veículos do Apify com o banco de dados
+ * Sincroniza veículos diretamente da Copart com o banco de dados
  */
-export async function syncVehiclesFromApify(): Promise<{
+export async function syncVehiclesFromCopart(): Promise<{
   success: boolean;
   vehiclesProcessed: number;
   vehiclesAdded: number;
@@ -19,14 +19,14 @@ export async function syncVehiclesFromApify(): Promise<{
   let vehiclesUpdated = 0;
 
   try {
-    console.log('[Sync] Iniciando sincronização de veículos do Apify...');
-    
-    // Buscar dados mais recentes do Apify
-    const apifyVehicles = await getLatestVehicleData();
-    
-    if (apifyVehicles.length === 0) {
-      console.warn('[Sync] Nenhum veículo encontrado no Apify');
-      await logSync('warning', 0, 0, 0, 'Nenhum veículo encontrado no Apify');
+    console.log('[Sync] Iniciando sincronização de veículos diretamente da Copart...');
+
+    const copartLots = await fetchCopartInventory();
+    console.log(`[Sync] ${copartLots.length} lotes retornados da Copart`);
+
+    if (copartLots.length === 0) {
+      console.warn('[Sync] Nenhum veículo encontrado na Copart');
+      await logSync('warning', 0, 0, 0, 'Nenhum veículo encontrado na Copart');
       return {
         success: true,
         vehiclesProcessed: 0,
@@ -41,12 +41,16 @@ export async function syncVehiclesFromApify(): Promise<{
     }
 
     // Processar cada veículo
-    for (const apifyVehicle of apifyVehicles) {
+    for (const lot of copartLots) {
       try {
         vehiclesProcessed++;
 
-        // Transformar dados do Apify para formato do banco
-        const vehicleData = transformApifyVehicle(apifyVehicle);
+        const vehicleData = transformCopartLot(lot);
+
+        if (!vehicleData.lotNumber) {
+          console.warn('[Sync] Veículo ignorado por não possuir lotNumber válido.');
+          continue;
+        }
 
         // Verificar se veículo já existe (por lotNumber)
         const existingVehicle = await db
@@ -77,7 +81,8 @@ export async function syncVehiclesFromApify(): Promise<{
           vehiclesAdded++;
         }
       } catch (vehicleError) {
-        console.error(`[Sync] Erro ao processar veículo ${apifyVehicle.lot_number}:`, vehicleError);
+        const lotNumber = typeof lot?.lotNumber === 'string' ? lot.lotNumber : 'desconhecido';
+        console.error(`[Sync] Erro ao processar veículo ${lotNumber}:`, vehicleError);
         // Continuar processando outros veículos mesmo se um falhar
       }
     }
@@ -154,7 +159,7 @@ export async function runInitialSync() {
     
     if (vehicleCount.length === 0) {
       console.log('[Sync] Nenhum veículo no banco. Executando sincronização inicial...');
-      await syncVehiclesFromApify();
+      await syncVehiclesFromCopart();
     } else {
       console.log('[Sync] Veículos já existem no banco. Sincronização inicial não necessária.');
     }
