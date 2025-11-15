@@ -1,177 +1,69 @@
-# Copart Brasil - Clone
+## PlaywrightCrawler template
 
-Clone completo do site Copart com sistema de leilões de veículos em tempo real.
+<!-- This is an Apify template readme -->
 
-## 🚀 Funcionalidades
+This template is a production ready boilerplate for developing an [Actor](https://apify.com/actors) with `PlaywrightCrawler`. Use this to bootstrap your projects using the most up-to-date code.
 
-- **Sistema de Leilões em Tempo Real** - Lances ao vivo com Socket.IO
-- **Busca Avançada** - Busca por marca, modelo, chassis/VIN e número do lote
-- **Sistema de Notificações** - Notificações personalizadas para novos lances, mudanças de preço e lembretes
-- **Painel Administrativo** - Gerenciamento completo de veículos e configurações
-- **Sincronização Automática** - Espelhamento direto da Copart Brasil atualizado a cada 4 horas
-- **Autenticação OAuth** - Sistema de login seguro
-- **Responsivo** - Design totalmente responsivo para mobile e desktop
+> We decided to split Apify SDK into two libraries, Crawlee and Apify SDK v3. Crawlee will retain all the crawling and scraping-related tools and will always strive to be the best [web scraping](https://apify.com/web-scraping) library for its community. At the same time, Apify SDK will continue to exist, but keep only the Apify-specific features related to building Actors on the Apify platform. Read the upgrading guide to learn about the changes.
 
-## 🛠️ Tecnologias
+## Resources
 
-### Frontend
-- **React 19** - Framework JavaScript
-- **TypeScript** - Tipagem estática
-- **Tailwind CSS 4** - Framework CSS
-- **shadcn/ui** - Componentes UI
-- **Wouter** - Roteamento
-- **Socket.IO Client** - Comunicação em tempo real
-- **tRPC** - API type-safe
+If you're looking for examples or want to learn more visit:
 
-### Backend
-- **Node.js 22** - Runtime JavaScript
-- **Express** - Framework web
-- **tRPC** - API type-safe
-- **Socket.IO** - WebSockets
-- **Drizzle ORM** - ORM para banco de dados
-- **MySQL** - Banco de dados
-- **Node-cron** - Agendamento de tarefas
+- [Crawlee + Apify Platform guide](https://crawlee.dev/docs/guides/apify-platform)
+- [Documentation](https://crawlee.dev/api/playwright-crawler/class/PlaywrightCrawler) and [examples](https://crawlee.dev/docs/examples/playwright-crawler)
+- [Node.js tutorials](https://docs.apify.com/academy/node-js) in Academy
+- [Scraping single-page applications with Playwright](https://blog.apify.com/scraping-single-page-applications-with-playwright/)
+- [How to scale Puppeteer and Playwright](https://blog.apify.com/how-to-scale-puppeteer-and-playwright/)
+- [Integration with Zapier](https://apify.com/integrations), Make, GitHub, Google Drive and other apps
+- [Video guide on getting scraped data using Apify API](https://www.youtube.com/watch?v=ViYYDHSBAKM)
+- A short guide on how to build web scrapers using code templates:
 
-### Integrações
-- **Copart Brasil** - Coleta direta dos veículos e leilões oficiais
-- **Stripe** - Pagamentos (configurado mas não implementado)
-- **OAuth** - Autenticação
+[web scraper template](https://www.youtube.com/watch?v=u-i-Korzf8w)
 
-## 📋 Pré-requisitos
 
-- Node.js 22.x ou superior
-- pnpm 10.x ou superior
-- MySQL 8.x ou superior
+## Getting started
 
-## 🔧 Instalação
+For complete information [see this article](https://docs.apify.com/platform/actors/development#build-actor-at-apify-console). In short, you will:
 
-1. Clone o repositório:
-```bash
-git clone https://github.com/revisaosegura/copartbr.git
-cd copartbr
-```
+1. Build the Actor
+2. Run the Actor
 
-2. Instale as dependências:
-```bash
-pnpm install
-```
+## Pull the Actor for local development
 
-3. Configure as variáveis de ambiente:
-```bash
-# Copie o arquivo .env.example para .env
-cp .env.example .env
+If you would like to develop locally, you can pull the existing Actor from Apify console using Apify CLI:
 
-# Edite o arquivo .env com suas credenciais
-```
+1. Install `apify-cli`
 
-4. Configure o banco de dados:
-```bash
-# Execute as migrations
-pnpm db:push
-```
+    **Using Homebrew**
 
-5. Inicie o servidor de desenvolvimento:
-```bash
-pnpm dev
-```
+    ```bash
+    brew install apify-cli
+    ```
 
-O site estará disponível em `http://localhost:3000`
+    **Using NPM**
 
-## 🌐 Deploy no Render
+    ```bash
+    npm -g install apify-cli
+    ```
 
-O projeto está configurado para deploy automático no Render através do arquivo `render.yaml`.
+2. Pull the Actor by its unique `<ActorId>`, which is one of the following:
+    - unique name of the Actor to pull (e.g. "apify/hello-world")
+    - or ID of the Actor to pull (e.g. "E2jjCZBezvAZnX8Rb")
 
-### Variáveis de Ambiente Necessárias:
+    You can find both by clicking on the Actor title at the top of the page, which will open a modal containing both Actor unique name and Actor ID.
 
-- `DATABASE_URL` - URL de conexão com MySQL (obrigatório)
-- `JWT_SECRET` - Chave secreta para JWT (gerada automaticamente)
-- `COPART_SEARCH_URL` - URL da pesquisa pública da Copart (opcional)
-- `COPART_SEARCH_FALLBACK_URL` - Endpoint alternativo da Copart usado como fallback (opcional)
-- `COPART_PAGE_SIZE` - Quantidade de registros por página na coleta (opcional)
-- `COPART_MAX_PAGES` - Número máximo de páginas coletadas por sincronização (opcional)
-- `OAUTH_SERVER_URL` - URL do servidor OAuth (opcional)
-- `STRIPE_SECRET_KEY` - Chave secreta Stripe (opcional)
-- `STRIPE_WEBHOOK_SECRET` - Secret do webhook Stripe (opcional)
+    This command will copy the Actor into the current directory on your local machine.
 
-### Passos para Deploy:
+    ```bash
+    apify pull <ActorId>
+    ```
 
-1. **Crie um banco MySQL** no Render ou use um externo
-2. **Crie um novo Web Service** no Render
-3. **Conecte ao repositório GitHub** (revisaosegura/copartbr)
-4. **Configure o ambiente:**
-   - Environment: **Node**
-   - Build Command: `bash scripts/build.sh`
-   - Start Command: `bash scripts/start.sh`
-5. **Adicione as variáveis de ambiente** (especialmente DATABASE_URL)
-6. O deploy será feito automaticamente
+## Documentation reference
 
-**Importante:** As migrations do banco são executadas automaticamente no start command.
+To learn more about Apify and Actors, take a look at the following resources:
 
-## 📦 Scripts Disponíveis
-
-```bash
-# Desenvolvimento
-pnpm dev          # Inicia servidor de desenvolvimento
-
-# Build
-pnpm build        # Compila o projeto para produção
-
-# Produção
-pnpm start        # Inicia servidor de produção
-
-# Banco de Dados
-pnpm db:push      # Aplica mudanças no schema do banco
-pnpm db:studio    # Abre interface visual do banco
-
-# Testes
-pnpm test         # Executa testes
-
-# Sanitização de dados sensíveis
-scripts/check_forbidden_terms.py  # Verifica se há menções indevidas a identificadores pessoais
-```
-
-## 🗂️ Estrutura do Projeto
-
-```
-copartbr/
-├── client/              # Frontend React
-│   ├── public/         # Arquivos estáticos
-│   └── src/
-│       ├── components/ # Componentes React
-│       ├── pages/      # Páginas da aplicação
-│       ├── hooks/      # Custom hooks
-│       └── lib/        # Utilitários
-├── server/             # Backend Node.js
-│   ├── _core/         # Funcionalidades core
-│   ├── services/      # Serviços (Copart, sincronização)
-│   ├── routers.ts     # Rotas tRPC
-│   ├── socket.ts      # Configuração Socket.IO
-│   └── db.ts          # Funções do banco de dados
-├── drizzle/           # Migrations e schema do banco
-├── shared/            # Código compartilhado
-└── render.yaml        # Configuração Render
-```
-
-## 🔐 Segurança
-
-- Autenticação via OAuth
-- JWT para sessões
-- Validação de entrada com Zod
-- Proteção contra SQL Injection via Drizzle ORM
-- CORS configurado
-
-## 📝 Licença
-
-Este projeto é um clone educacional do site Copart.
-
-## 👥 Contribuindo
-
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues e pull requests.
-
-## 📧 Contato
-
-Para dúvidas e suporte, entre em contato através do GitHub.
-
----
-
-**Nota:** Este é um projeto de demonstração e não tem afiliação oficial com a Copart.
+- [Apify SDK for JavaScript documentation](https://docs.apify.com/sdk/js)
+- [Apify SDK for Python documentation](https://docs.apify.com/sdk/python)
+- [Apify Platform documentation](https://docs.apify.com/platform)
+- [Join our developer community on Discord](https://discord.com/invite/jyEM2PRvMU)
