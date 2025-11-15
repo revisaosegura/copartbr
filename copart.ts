@@ -60,9 +60,13 @@ const MAX_PAGE_SIZE = 500;
 
 const COPART_DEFAULT_HEADERS = {
     'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) CopartPublicSearch/1.0',
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     Accept: 'application/json, text/plain, */*',
     'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+    'X-Requested-With': 'XMLHttpRequest',
+    'Sec-Fetch-Mode': 'cors',
+    'Sec-Fetch-Site': 'same-origin',
+    'Sec-Fetch-Dest': 'empty',
 };
 
 const COPART_BOOTSTRAP_PATHS = ['/', '/vehicleFinder', '/search/'];
