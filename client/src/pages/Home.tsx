@@ -128,10 +128,10 @@ const INVENTORY_CONTENT = {
       },
     ],
     highlight: {
-      title: "Lojista, você também pode vender conosco!",
+      title: "Compre Agora",
       description:
-        "Cadastre seu estoque e tenha acesso a milhões de compradores com soluções completas de logística e documentação.",
-      cta: { label: "Confira", href: "/vender-meu-carro" },
+        "Encontre veículos selecionados prontos para fechar negócio imediatamente com total conveniência.",
+      cta: { label: "Clique aqui!", href: "/buscar?venda=direta" },
     },
   },
   destaques: {
@@ -285,31 +285,27 @@ const INVENTORY_CONTENT = {
 
 type InventoryTabKey = keyof typeof INVENTORY_CONTENT;
 
-const COPART_SEGMENTS = [
-  {
-    title: "Quem é a Copart?",
-    description:
-      "Descubra a Copart, a plataforma líder em compra e venda de veículos. Reunimos um dos maiores inventários do mercado, com tecnologia exclusiva e alcance global para ligar vendedores aos compradores certos.",
-  },
-  {
-    title: "Atendimento especializado",
-    description:
-      "Atendemos a consumidores finais, lojistas e seguradoras com total transparência e flexibilidade. Seja participante de um leilão ou vendedor com grande estoque, a Copart transforma a experiência em resultados.",
-  },
-];
+const COPART_OVERVIEW = {
+  title: "Quem é a Copart?",
+  paragraphs: [
+    "Descubra a Copart, a plataforma líder em compra e venda de veículos. Reunimos um dos maiores inventários do mercado, com tecnologia exclusiva e alcance global para ligar vendedores aos compradores certos.",
+    "Na Copart, você encontra recursos que vão potencializar a sua jornada, seja para comprar ou vender. Milhares de lotes disponíveis, condições especiais e uma equipe especialista pronta para te ajudar a encontrar as melhores opções todos os dias.",
+    "Além disso, oferecemos soluções completas: da assinatura financeira concluída via contrato digital até a entrega rápida na sua loja ou garagem. Faça parte do universo Copart e simplifique a sua experiência de compra e venda de veículos.",
+  ],
+};
 
 const COPART_CATEGORIES = [
   {
     title: "Venda Direta",
-    items: ["Veículos prontos", "Pequena Monta", "Média Monta", "Grande Monta"],
+    items: ["Como funciona", "Como vender"],
   },
   {
     title: "Automóveis",
-    items: ["Veículos urbanos", "SUV", "Pequena Monta", "Média Monta"],
+    items: ["Pequena Monta", "Chevrolet", "Fiat", "Honda"],
   },
   {
     title: "Caminhões",
-    items: ["Pesados", "Semipesados", "Utilitários", "Pequena Monta"],
+    items: ["Placas grandes", "Semipesados", "Utilitários", "Pequena Monta"],
   },
   {
     title: "Motocicletas",
@@ -559,111 +555,167 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-16 bg-white">
-          <div className="container space-y-8">
-            <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 pb-4">
-              {INVENTORY_TABS.map(tab => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setActiveInventoryTab(tab.key as InventoryTabKey)}
-                  className={`px-4 py-2 rounded-full text-sm font-semibold transition ${
-                    activeInventoryTab === tab.key
-                      ? "bg-[#002366] text-white"
-                      : "bg-gray-100 text-[#002366] hover:bg-gray-200"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
+        <section className="relative overflow-hidden py-16">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#f3f7ff] via-white to-[#dce9ff]" aria-hidden="true" />
+
+          <div className="container relative space-y-10">
+            <div className="space-y-4 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#0d47d6] uppercase tracking-[0.12em]">
+                Pesquisar Inventário da Copart
+              </h2>
+              <div className="flex flex-wrap justify-center gap-3">
+                {INVENTORY_TABS.map(tab => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setActiveInventoryTab(tab.key as InventoryTabKey)}
+                    className={`rounded-full border px-6 py-2 text-sm font-semibold uppercase tracking-[0.16em] transition ${
+                      activeInventoryTab === tab.key
+                        ? "border-transparent bg-[#0d47d6] text-white shadow-[0_18px_40px_-24px_rgba(13,71,214,0.8)]"
+                        : "border-[#0d47d6]/40 bg-white/80 text-[#0d47d6] hover:border-[#0d47d6] hover:bg-white"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
-                {inventoryContent.columns.map(column => (
-                  <Card key={column.title} className="border-[#002366]/10">
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-lg font-semibold text-[#002366] uppercase tracking-widest">
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,3fr)_minmax(0,1.1fr)]">
+              <div className="rounded-[32px] border border-[#c6d7ff] bg-white/95 p-10 shadow-[0_45px_120px_-60px_rgba(10,58,170,0.55)]">
+                <div className="grid gap-10 md:grid-cols-2 xl:grid-cols-3">
+                  {inventoryContent.columns.map(column => (
+                    <div key={column.title} className="space-y-5">
+                      <div className="flex items-center gap-3">
+                        <span className="h-2 w-2 rounded-full bg-[#00a0e3]" />
+                        <span className="text-sm font-semibold uppercase tracking-[0.28em] text-[#0d47d6]">
                           {column.title}
-                        </h3>
-                        <ChevronRight className="text-[#002366]/40" size={20} />
+                        </span>
                       </div>
-                      <div className="grid grid-cols-1 gap-2 text-sm text-gray-600">
+                      <div className="grid gap-3 text-sm font-medium text-[#003087] md:text-base">
                         {column.items.map(item => (
                           <button
                             key={item}
                             type="button"
                             onClick={() => handleQuickFilter(item)}
-                            className="text-left hover:text-[#002366]"
+                            className="group flex items-center gap-3 text-left transition"
                           >
-                            {item}
+                            <span className="h-2 w-2 rounded-full bg-[#00a0e3]/40 transition group-hover:bg-[#00a0e3]" />
+                            <span className="border-b border-transparent group-hover:border-[#00a0e3] group-hover:text-[#0d47d6]">
+                              {item}
+                            </span>
                           </button>
                         ))}
                       </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <Card className="border-[#002366]/10 bg-gradient-to-br from-[#001b45] via-[#002a6b] to-[#00112c] text-white">
-                <CardContent className="p-8 space-y-4">
-                  <h3 className="text-2xl font-semibold leading-snug">
-                    {inventoryContent.highlight.title}
-                  </h3>
-                  <p className="text-white/80 leading-relaxed">
-                    {inventoryContent.highlight.description}
-                  </p>
+              <div className="relative overflow-hidden rounded-[36px] border border-[#4c7dff]/30 bg-gradient-to-br from-[#042a92] via-[#0157d5] to-[#02a0ff] text-white shadow-[0_50px_120px_-70px_rgba(3,40,130,0.8)]">
+                <div className="absolute inset-0">
+                  <img
+                    src="/car4.jpg"
+                    alt="Destaque Compre Agora"
+                    className="h-full w-full object-cover object-right"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#041c5d]/90 via-[#0157d5]/85 to-[#01a4ff]/80" />
+                </div>
+
+                <div className="relative flex h-full flex-col justify-between p-8">
+                  <div className="space-y-4">
+                    <Badge className="w-fit rounded-full bg-white/20 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white">
+                      Destaque
+                    </Badge>
+                    <h3 className="text-4xl font-extrabold uppercase tracking-[0.32em]">
+                      {inventoryContent.highlight.title}
+                    </h3>
+                    {inventoryContent.highlight.description && (
+                      <p className="max-w-xs text-sm font-medium uppercase tracking-[0.24em] text-white/80">
+                        {inventoryContent.highlight.description}
+                      </p>
+                    )}
+                  </div>
                   <Button
-                    className="bg-[#fdb714] hover:bg-[#e7a90f] text-black font-semibold rounded-full"
+                    className="mt-6 h-12 w-fit rounded-full bg-white px-8 text-sm font-bold uppercase tracking-[0.28em] text-[#0d47d6] transition hover:bg-[#f0f4ff]"
                     onClick={() => setLocation(inventoryContent.highlight.cta.href)}
                   >
                     {inventoryContent.highlight.cta.label}
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="bg-[#001b45] text-white py-16">
-          <div className="container grid gap-12 lg:grid-cols-[minmax(0,1.3fr)_1fr] items-start">
-            <div className="space-y-10">
-              {COPART_SEGMENTS.map(segment => (
-                <div key={segment.title} className="space-y-3">
-                  <h2 className="text-3xl font-bold">{segment.title}</h2>
-                  <p className="text-white/80 leading-relaxed">{segment.description}</p>
+        <section className="relative overflow-hidden bg-gradient-to-r from-[#120d17] via-[#0b101f] to-[#05163a] py-20 text-white">
+          <div className="absolute -left-32 top-0 h-72 w-72 rounded-full bg-[#fdb714]/10 blur-3xl" />
+          <div className="absolute -right-24 bottom-0 h-64 w-64 rounded-full bg-[#0b5bf4]/20 blur-3xl" />
+
+          <div className="container relative grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+            <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#1b1728] via-[#14172a] to-[#060a16] p-12 shadow-[0_40px_80px_-40px_rgba(0,0,0,0.9)]">
+              <div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-[#fdb714]/10 blur-3xl" />
+              <div className="absolute -left-16 bottom-0 h-60 w-60 rounded-full bg-[#ff6f1e]/10 blur-3xl" />
+
+              <div className="relative space-y-6">
+                <h2 className="text-4xl font-extrabold text-white">
+                  {COPART_OVERVIEW.title}
+                </h2>
+                <div className="space-y-4 text-base leading-relaxed text-white/80">
+                  {COPART_OVERVIEW.paragraphs.map(paragraph => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
                 </div>
-              ))}
-              <Button
-                className="bg-[#fdb714] hover:bg-[#e7a90f] text-black font-semibold rounded-full"
-                onClick={() => setLocation("/registrar")}
-              >
-                Faça seu cadastro
-              </Button>
+                <Button
+                  className="mt-6 h-12 w-fit rounded-full bg-gradient-to-r from-[#fdb714] via-[#ff9d23] to-[#ff6f1e] px-10 text-sm font-extrabold uppercase tracking-[0.2em] text-[#1f1200] shadow-[0_12px_30px_rgba(253,183,20,0.35)] transition hover:shadow-[0_16px_40px_rgba(253,183,20,0.45)]"
+                  onClick={() => setLocation("/registrar")}
+                >
+                  Faça seu cadastro
+                </Button>
+              </div>
             </div>
 
-            <div className="bg-white/10 backdrop-blur rounded-3xl p-8 space-y-6">
-              <h3 className="text-xl font-semibold">Copart: sua plataforma de compra e venda online de veículos!</h3>
-              <div className="grid gap-4">
-                {COPART_CATEGORIES.map(category => (
-                  <div key={category.title} className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-lg font-semibold">{category.title}</h4>
-                      <Badge className="bg-white/20 text-white uppercase tracking-widest">Confira</Badge>
+            <div className="relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#0a2a77] via-[#0c3a9c] to-[#0e4fca] p-12 shadow-[0_40px_100px_-50px_rgba(11,86,220,0.8)]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_55%)]" />
+              <div className="relative space-y-8">
+                <div className="space-y-2">
+                  <p className="text-xs font-semibold uppercase tracking-[0.4em] text-white/70">
+                    Copart
+                  </p>
+                  <h3 className="text-2xl font-bold leading-tight">
+                    Copart: sua plataforma de compra e venda online de veículos!
+                  </h3>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {COPART_CATEGORIES.map(category => (
+                    <div
+                      key={category.title}
+                      className="group overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-white/15 via-white/5 to-transparent p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] transition hover:border-white/25"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <h4 className="text-lg font-semibold text-white">
+                            {category.title}
+                          </h4>
+                          <Badge className="rounded-full bg-white/20 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-white">
+                            Confira
+                          </Badge>
+                        </div>
+                        <ul className="space-y-2 text-sm text-white/80">
+                          {category.items.map(item => (
+                            <li
+                              key={item}
+                              className="flex items-center gap-2"
+                            >
+                              <span className="h-1.5 w-1.5 rounded-full bg-gradient-to-br from-white to-white/60" />
+                              <span>{item}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
                     </div>
-                    <div className="flex flex-wrap gap-2 text-sm text-white/70">
-                      {category.items.map(item => (
-                        <span
-                          key={item}
-                          className="px-3 py-1 rounded-full bg-white/10"
-                        >
-                          {item}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
