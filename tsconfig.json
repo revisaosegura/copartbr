@@ -9,5 +9,6 @@
         "skipLibCheck": true,
         "lib": ["DOM"]
     },
-    "include": ["./src/**/*"]
+    "include": ["main.ts", "copart.ts", "src/**/*.ts"],
+    "exclude": ["dist"]
 }
