@@ -125,6 +125,9 @@ pnpm db:studio    # Abre interface visual do banco
 
 # Testes
 pnpm test         # Executa testes
+
+# Sanitização de dados sensíveis
+scripts/check_forbidden_terms.py  # Verifica se há menções indevidas a identificadores pessoais
 ```
 
 ## 🗂️ Estrutura do Projeto
