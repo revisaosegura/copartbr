@@ -17,7 +17,7 @@ export default function PrecisaAjuda() {
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
               <Phone className="text-[#FDB714] mx-auto mb-4" size={48} />
               <h3 className="text-xl font-semibold text-[#003087] mb-2">Telefone</h3>
-              <p className="text-gray-700">+55 11 91471-9390</p>
+              <p className="text-gray-700">+55 11 92127-1104</p>
               <p className="text-sm text-gray-600 mt-2">Seg-Sex: 8h às 18h</p>
             </div>
 
@@ -31,7 +31,7 @@ export default function PrecisaAjuda() {
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
               <MessageCircle className="text-[#FDB714] mx-auto mb-4" size={48} />
               <h3 className="text-xl font-semibold text-[#003087] mb-2">WhatsApp</h3>
-              <p className="text-gray-700">+55 11 91471-9390</p>
+              <p className="text-gray-700">+55 11 92127-1104</p>
               <p className="text-sm text-gray-600 mt-2">Atendimento rápido</p>
             </div>
           </div>
