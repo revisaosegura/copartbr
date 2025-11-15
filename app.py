@@ -52,6 +52,6 @@ def home():
 if __name__ == '__main__':
     # Em um ambiente de produção, o servidor seria iniciado com um WSGI como Gunicorn.
     # Para fins de teste e demonstração, usaremos o servidor de desenvolvimento do Flask.
-    host = os.environ.get('FLASK_HOST')
+    host = os.environ.get('FLASK_HOST', '0.0.0.0')
     port = int(os.environ.get('PORT', 5000))
     app.run(host=host, port=port)
