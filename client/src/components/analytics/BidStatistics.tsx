@@ -1,15 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingUp, Award } from 'lucide-react';
+import { DollarSign, TrendingUp, Award, Users } from 'lucide-react';
 
 interface BidStats {
   totalBids: number;
+  vehiclesWithBids: number;
   totalBidValue: number;
   averageBidValue: number;
   topBiddedVehicles: Array<{
     id: number;
     title: string;
     lotNumber: string;
-    currentBid: number;
+    highestBid: number;
   }>;
 }
 
@@ -46,7 +47,7 @@ export function BidStatistics({ data, isLoading }: BidStatisticsProps) {
   return (
     <div className="space-y-6">
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total de Lances</CardTitle>
@@ -55,7 +56,20 @@ export function BidStatistics({ data, isLoading }: BidStatisticsProps) {
           <CardContent>
             <div className="text-2xl font-bold">{data.totalBids.toLocaleString('pt-BR')}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Veículos com lances ativos
+              Lances registrados na plataforma
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Veículos com Lances</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{data.vehiclesWithBids.toLocaleString('pt-BR')}</div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Veículos que receberam pelo menos um lance
             </p>
           </CardContent>
         </Card>
@@ -112,7 +126,7 @@ export function BidStatistics({ data, isLoading }: BidStatisticsProps) {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-sm text-[#003087]">
-                      R$ {(vehicle.currentBid / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      R$ {(vehicle.highestBid / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>

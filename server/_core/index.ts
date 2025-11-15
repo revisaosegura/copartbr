@@ -7,6 +7,11 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { getSessionCookieOptions } from "./cookies";
+import { sdk } from "./sdk";
+import { COOKIE_NAME } from "@shared/const";
+import * as db from "../db";
+import { ENV } from "./env";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -48,6 +53,49 @@ async function startServer() {
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  app.post("/api/admin/login", async (req, res) => {
+    const { username, password } = req.body ?? {};
+
+    if (username !== "Copart" || password !== "Copart.2025") {
+      return res
+        .status(401)
+        .json({ success: false, error: "Credenciais inválidas" });
+    }
+
+    const openId = "local-admin-copart";
+    const adminName = "Administrador Copart";
+
+    try {
+      await db.upsertUser({
+        openId,
+        name: adminName,
+        email: "admin@copartbr.com.br",
+        loginMethod: "local",
+        role: "admin",
+        lastSignedIn: new Date(),
+      });
+
+      const token = await sdk.signSession({
+        openId,
+        appId: ENV.appId,
+        name: adminName,
+      });
+
+      const cookieOptions = getSessionCookieOptions(req);
+      res.cookie(COOKIE_NAME, token, {
+        ...cookieOptions,
+        maxAge: 1000 * 60 * 60 * 24 * 30, // 30 dias
+      });
+
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("[Admin] Falha ao autenticar admin local:", error);
+      return res
+        .status(500)
+        .json({ success: false, error: "Falha ao autenticar admin" });
+    }
+  });
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API

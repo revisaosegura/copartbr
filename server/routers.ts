@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
-import { getDashboardStats, getRecentSyncLogs, getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle, getAllSettings, upsertSetting, getUserNotifications, getUnreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead, createNotification, getAllUsers, getUserCount, getUserGrowthStats, getMostViewedVehicles, getBidStatistics } from "./db";
+import { getDashboardStats, getRecentSyncLogs, getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle, getAllSettings, upsertSetting, getUserNotifications, getUnreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead, createNotification, getAllUsers, getUserCount, getUserGrowthStats, getMostViewedVehicles, getBidStatistics, getRecentBids } from "./db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { NOT_ADMIN_ERR_MSG } from "@shared/const";
@@ -169,15 +169,15 @@ export const appRouter = router({
     }),
 
     // Sync management
-    sync: router({      syncNow: protectedProcedure
-        .mutation(async ({ ctx }) => {
-          if (ctx.user.role !== 'admin') {
-            throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
-          }
-          const { syncVehiclesFromCopart } = await import('./services/vehicleSync');
-          const result = await syncVehiclesFromCopart();
-          return result;
-        }),
+    sync: router({
+      syncNow: protectedProcedure.mutation(async ({ ctx }) => {
+        if (ctx.user.role !== 'admin') {
+          throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
+        }
+        const { syncVehiclesFromCopart } = await import('./services/vehicleSync');
+        const result = await syncVehiclesFromCopart();
+        return result;
+      }),
 
       getLogs: protectedProcedure
         .input(z.object({ limit: z.number().optional().default(50) }))
@@ -191,7 +191,8 @@ export const appRouter = router({
     }),
 
     // User management
-    users: router({      list: protectedProcedure.query(async ({ ctx }) => {
+    users: router({
+      list: protectedProcedure.query(async ({ ctx }) => {
         if (ctx.user.role !== 'admin') {
           throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
         }
@@ -206,8 +207,21 @@ export const appRouter = router({
       }),
     }),
 
+    // Bid management
+    bids: router({
+      list: protectedProcedure
+        .input(z.object({ limit: z.number().min(1).max(200).optional().default(50) }))
+        .query(async ({ ctx, input }) => {
+          if (ctx.user.role !== 'admin') {
+            throw new TRPCError({ code: 'FORBIDDEN', message: NOT_ADMIN_ERR_MSG });
+          }
+          return await getRecentBids(input.limit);
+        }),
+    }),
+
     // Analytics
-    analytics: router({      userGrowth: protectedProcedure
+    analytics: router({
+      userGrowth: protectedProcedure
         .input(z.object({ days: z.number().optional().default(30) }))
         .query(async ({ ctx, input }) => {
           if (ctx.user.role !== 'admin') {
