@@ -1,24 +1,21 @@
 {
-    "title": "PlaywrightCrawler Template",
+    "title": "Copart Public Search Scraper",
     "type": "object",
     "schemaVersion": 1,
     "properties": {
-        "startUrls": {
-            "title": "Start URLs",
-            "type": "array",
-            "description": "URLs to start with.",
-            "editor": "requestListSources",
-            "prefill": [
-                {
-                    "url": "https://apify.com"
-                }
-            ]
+        "startUrl": {
+            "title": "Copart URL",
+            "type": "string",
+            "description": "Cole a URL completa da Copart (página de busca ou lote individual).",
+            "editor": "textfield",
+            "prefill": "https://www.copart.com.br/search/leil%C3%A3o/?displayStr=Leil%C3%A3o&from=%2FvehicleFinder"
         },
-        "maxRequestsPerCrawl": {
-            "title": "Max Requests per Crawl",
+        "maxItems": {
+            "title": "Limite de resultados",
             "type": "integer",
-            "description": "Maximum number of requests that can be made by this crawler.",
-            "default": 100
+            "description": "Número máximo de lotes a coletar. Deixe vazio para usar todos os itens retornados pela Copart (usuários gratuitos devem usar até 100).",
+            "minimum": 1
         }
-    }
+    },
+    "required": ["startUrl"]
 }

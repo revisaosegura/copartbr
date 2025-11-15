@@ -1,22 +1,97 @@
 {
     "actorSpecification": 1,
-    "fields": {},
+    "fields": {
+        "lot_number": {
+            "title": "Lot Number",
+            "description": "Identificador único do lote informado pela Copart."
+        },
+        "year": {
+            "title": "Ano"
+        },
+        "make": {
+            "title": "Marca"
+        },
+        "model": {
+            "title": "Modelo"
+        },
+        "sale_status": {
+            "title": "Status de venda"
+        },
+        "current_bid": {
+            "title": "Lance atual"
+        },
+        "auction_date": {
+            "title": "Data do leilão"
+        },
+        "sale_location": {
+            "title": "Local"
+        },
+        "primary_damage": {
+            "title": "Dano principal"
+        },
+        "imageUrl": {
+            "title": "Imagem principal"
+        }
+    },
     "views": {
         "overview": {
-            "title": "Overview",
+            "title": "Resumo dos lotes",
             "transformation": {
-                "fields": ["title", "url"]
+                "fields": [
+                    "lot_number",
+                    "year",
+                    "make",
+                    "model",
+                    "sale_status",
+                    "current_bid",
+                    "auction_date",
+                    "sale_location",
+                    "primary_damage",
+                    "imageUrl"
+                ]
             },
             "display": {
                 "component": "table",
                 "properties": {
-                    "title": {
-                        "label": "Title",
+                    "lot_number": {
+                        "label": "Lote",
                         "format": "text"
                     },
-                    "url": {
-                        "label": "URL",
-                        "format": "link"
+                    "year": {
+                        "label": "Ano",
+                        "format": "number"
+                    },
+                    "make": {
+                        "label": "Marca",
+                        "format": "text"
+                    },
+                    "model": {
+                        "label": "Modelo",
+                        "format": "text"
+                    },
+                    "sale_status": {
+                        "label": "Status",
+                        "format": "text"
+                    },
+                    "current_bid": {
+                        "label": "Lance (R$)",
+                        "format": "number"
+                    },
+                    "auction_date": {
+                        "label": "Data do leilão",
+                        "format": "date"
+                    },
+                    "sale_location": {
+                        "label": "Local",
+                        "format": "text"
+                    },
+                    "primary_damage": {
+                        "label": "Dano principal",
+                        "format": "text"
+                    },
+                    "imageUrl": {
+                        "label": "Imagem",
+                        "format": "image"
                     }
                 }
             }
