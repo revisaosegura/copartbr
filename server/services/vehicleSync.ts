@@ -1,7 +1,25 @@
 import { fetchCopartInventory, transformCopartLot } from './copart';
 import { getDb } from '../db';
 import { vehicles, syncLogs } from '../../drizzle/schema';
-import { eq } from 'drizzle-orm';
+import { eq, inArray, desc } from 'drizzle-orm';
+
+const DEFAULT_FEATURED_LIMIT = 12;
+
+function parseOptionalPositiveInteger(value: string | undefined): number | undefined {
+  if (!value) return undefined;
+
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) {
+    return undefined;
+  }
+
+  return parsed;
+}
+
+function parsePositiveInteger(value: string | undefined, fallback: number): number {
+  const parsed = parseOptionalPositiveInteger(value);
+  return parsed ?? fallback;
+}
 
 /**
  * Sincroniza veículos diretamente da Copart com o banco de dados
@@ -21,7 +39,9 @@ export async function syncVehiclesFromCopart(): Promise<{
   try {
     console.log('[Sync] Iniciando sincronização de veículos diretamente da Copart...');
 
-    const copartLots = await fetchCopartInventory();
+    const featuredLimit = parsePositiveInteger(process.env.COPART_FEATURED_LIMIT, DEFAULT_FEATURED_LIMIT);
+    const maxItems = parseOptionalPositiveInteger(process.env.COPART_MAX_ITEMS);
+    const copartLots = await fetchCopartInventory({ maxItems: maxItems });
     console.log(`[Sync] ${copartLots.length} lotes retornados da Copart`);
 
     if (copartLots.length === 0) {
@@ -87,6 +107,8 @@ export async function syncVehiclesFromCopart(): Promise<{
       }
     }
 
+    await refreshFeaturedVehicles(db, featuredLimit);
+
     const duration = Date.now() - startTime;
     console.log(`[Sync] Sincronização concluída em ${duration}ms`);
     console.log(`[Sync] Processados: ${vehiclesProcessed}, Adicionados: ${vehiclesAdded}, Atualizados: ${vehiclesUpdated}`);
@@ -141,6 +163,32 @@ async function logSync(
     });
   } catch (error) {
     console.error('[Sync] Erro ao registrar log:', error);
+  }
+}
+
+async function refreshFeaturedVehicles(db: NonNullable<Awaited<ReturnType<typeof getDb>>>, limit: number) {
+  if (limit <= 0) return;
+
+  try {
+    await db.update(vehicles).set({ featured: 0 });
+
+    const topVehicles = await db
+      .select({ id: vehicles.id })
+      .from(vehicles)
+      .where(eq(vehicles.active, 1))
+      .orderBy(desc(vehicles.currentBid), desc(vehicles.createdAt))
+      .limit(limit);
+
+    if (topVehicles.length === 0) {
+      return;
+    }
+
+    await db
+      .update(vehicles)
+      .set({ featured: 1 })
+      .where(inArray(vehicles.id, topVehicles.map(vehicle => vehicle.id)));
+  } catch (error) {
+    console.error('[Sync] Falha ao atualizar destaques automáticos:', error);
   }
 }
 

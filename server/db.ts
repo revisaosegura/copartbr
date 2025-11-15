@@ -392,7 +392,7 @@ export async function getFilteredVehicles(filters: {
       .select()
       .from(vehicles)
       .where(whereClause)
-      .orderBy(desc(vehicles.createdAt))
+      .orderBy(desc(vehicles.featured), desc(vehicles.createdAt))
       .limit(limit)
       .offset(offset),
     db
