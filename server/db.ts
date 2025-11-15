@@ -1,6 +1,6 @@
-import { eq, desc, sql, and, gte, isNotNull, inArray } from "drizzle-orm";
+import { eq, desc, sql, and, gte, isNotNull, inArray, asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, vehicles, priceHistory, syncLogs, siteSettings, siteStats, notifications, InsertVehicle, InsertPriceHistory, InsertSyncLog, InsertSiteSetting, InsertSiteStats, InsertNotification } from "../drizzle/schema";
+import { InsertUser, users, vehicles, priceHistory, syncLogs, siteSettings, siteStats, notifications, InsertVehicle, InsertPriceHistory, InsertSyncLog, InsertSiteSetting, InsertSiteStats, InsertNotification, bids, InsertBid } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -128,6 +128,88 @@ export async function deleteVehicle(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
   await db.update(vehicles).set({ active: 0 }).where(eq(vehicles.id, id));
+}
+
+// Bid functions
+export async function createBidRecord(bid: InsertBid) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot create bid: database not available");
+    return;
+  }
+
+  try {
+    await db.insert(bids).values(bid);
+  } catch (error) {
+    console.error("[Database] Failed to create bid record:", error);
+    throw error;
+  }
+}
+
+export async function getBidsByVehicle(vehicleId: number, limit: number = 50) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get bids: database not available");
+    return [];
+  }
+
+  try {
+    const results = await db
+      .select({
+        id: bids.id,
+        userId: bids.userId,
+        vehicleId: bids.vehicleId,
+        amount: bids.amount,
+        status: bids.status,
+        createdAt: bids.createdAt,
+        userName: users.name,
+        userEmail: users.email,
+      })
+      .from(bids)
+      .leftJoin(users, eq(bids.userId, users.id))
+      .where(eq(bids.vehicleId, vehicleId))
+      .orderBy(asc(bids.createdAt))
+      .limit(limit);
+
+    return results;
+  } catch (error) {
+    console.error("[Database] Error fetching bids by vehicle:", error);
+    return [];
+  }
+}
+
+export async function getRecentBids(limit: number = 50) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get recent bids: database not available");
+    return [];
+  }
+
+  try {
+    const results = await db
+      .select({
+        id: bids.id,
+        userId: bids.userId,
+        vehicleId: bids.vehicleId,
+        amount: bids.amount,
+        status: bids.status,
+        createdAt: bids.createdAt,
+        userName: users.name,
+        userEmail: users.email,
+        vehicleTitle: vehicles.title,
+        vehicleLotNumber: vehicles.lotNumber,
+      })
+      .from(bids)
+      .leftJoin(users, eq(bids.userId, users.id))
+      .leftJoin(vehicles, eq(bids.vehicleId, vehicles.id))
+      .orderBy(desc(bids.createdAt))
+      .limit(limit);
+
+    return results;
+  } catch (error) {
+    console.error("[Database] Error fetching recent bids:", error);
+    return [];
+  }
 }
 
 // Price history functions
@@ -544,6 +626,7 @@ export async function getBidStatistics() {
     console.warn("[Database] Cannot get bid statistics: database not available");
     return {
       totalBids: 0,
+      vehiclesWithBids: 0,
       totalBidValue: 0,
       averageBidValue: 0,
       topBiddedVehicles: [],
@@ -551,33 +634,39 @@ export async function getBidStatistics() {
   }
 
   try {
-    // Get total vehicles with bids (currentBid > 0)
-    const totalBidsResult = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(vehicles)
-      .where(sql`${vehicles.currentBid} > 0`);
+    const [totalBidsResult, vehiclesWithBidsResult, totalValueResult] = await Promise.all([
+      db.select({ count: sql<number>`COUNT(*)` }).from(bids),
+      db.select({ count: sql<number>`COUNT(DISTINCT ${bids.vehicleId})` }).from(bids),
+      db.select({ sum: sql<number>`COALESCE(SUM(${bids.amount}), 0)` }).from(bids),
+    ]);
 
-    const totalBids = totalBidsResult[0]?.count || 0;
+    const totalBids = Number(totalBidsResult?.[0]?.count || 0);
+    const vehiclesWithBids = Number(vehiclesWithBidsResult?.[0]?.count || 0);
+    const totalBidValue = Number(totalValueResult?.[0]?.sum || 0);
+    const averageBidValue = totalBids > 0 ? Math.round(totalBidValue / totalBids) : 0;
 
-    // Get total bid value
-    const totalValueResult = await db
-      .select({ sum: sql<number>`SUM(${vehicles.currentBid})` })
-      .from(vehicles);
+    const topBiddedVehiclesRaw = await db
+      .select({
+        id: vehicles.id,
+        title: vehicles.title,
+        lotNumber: vehicles.lotNumber,
+        highestBid: sql<number>`MAX(${bids.amount})`,
+      })
+      .from(bids)
+      .innerJoin(vehicles, eq(bids.vehicleId, vehicles.id))
+      .groupBy(vehicles.id, vehicles.title, vehicles.lotNumber);
 
-    const totalBidValue = totalValueResult[0]?.sum || 0;
-
-    // Calculate average
-    const averageBidValue = totalBids > 0 ? totalBidValue / totalBids : 0;
-
-    // Get top bidded vehicles
-    const topBiddedVehicles = await db
-      .select()
-      .from(vehicles)
-      .orderBy(desc(vehicles.currentBid))
-      .limit(5);
+    const topBiddedVehicles = topBiddedVehiclesRaw
+      .map(vehicle => ({
+        ...vehicle,
+        highestBid: Number(vehicle.highestBid || 0),
+      }))
+      .sort((a, b) => b.highestBid - a.highestBid)
+      .slice(0, 5);
 
     return {
       totalBids,
+      vehiclesWithBids,
       totalBidValue,
       averageBidValue,
       topBiddedVehicles,
@@ -586,6 +675,7 @@ export async function getBidStatistics() {
     console.error("[Database] Error fetching bid statistics:", error);
     return {
       totalBids: 0,
+      vehiclesWithBids: 0,
       totalBidValue: 0,
       averageBidValue: 0,
       topBiddedVehicles: [],
