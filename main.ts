@@ -16,7 +16,17 @@ function sanitizeStartUrl(value: unknown): string | null {
     }
 
     const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
+    if (!trimmed) {
+        return null;
+    }
+
+    try {
+        new URL(trimmed);
+    } catch {
+        return null;
+    }
+
+    return trimmed;
 }
 
 await Actor.init();
@@ -43,7 +53,8 @@ for (const candidate of startUrlCandidates) {
 }
 
 if (!resolvedStartUrl) {
-    throw new Error('O campo "startUrl" é obrigatório e deve ser uma string.');
+    resolvedStartUrl = DEFAULT_START_URL;
+    resolvedSource = 'default (fallback)';
 }
 
 if (resolvedSource && resolvedSource !== 'input') {
