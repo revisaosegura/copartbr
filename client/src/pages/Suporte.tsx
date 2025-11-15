@@ -24,8 +24,8 @@ export default function Suporte() {
                 <CardContent className="p-6 text-center">
                   <Phone className="mx-auto mb-4 text-[#FDB714]" size={48} />
                   <h3 className="text-xl font-bold text-[#003087] mb-2">Telefone</h3>
-                  <p className="text-gray-700">+55 11 91471-9390</p>
-                  <p className="text-gray-700">(11) 91471-9390</p>
+                  <p className="text-gray-700">+55 11 92127-1104</p>
+                  <p className="text-gray-700">(11) 92127-1104</p>
                   <p className="text-sm text-gray-600 mt-2">Seg-Sex: 8h-18h</p>
                 </CardContent>
               </Card>
