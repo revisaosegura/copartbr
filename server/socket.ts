@@ -29,6 +29,11 @@ type AuthenticatedSocketUser = {
   email: string | null;
 };
 
+type PlaceBidPayload = {
+  vehicleId: number;
+  amount: number;
+};
+
 async function resolveAuthenticatedUser(socket: Socket): Promise<AuthenticatedSocketUser | null> {
   if (socket.data.authenticatedUser) {
     return socket.data.authenticatedUser;
@@ -111,21 +116,30 @@ export function setupSocketIO(httpServer: HTTPServer) {
 
     // Entrar em uma sala de leilão específica
     socket.on("join-auction", async (vehicleId: number) => {
-      socket.join(`auction-${vehicleId}`);
-      console.log(`[Socket.IO] Cliente ${socket.id} entrou no leilão ${vehicleId}`);
+      const numericVehicleId = Number(vehicleId);
+
+      if (!Number.isInteger(numericVehicleId) || numericVehicleId <= 0) {
+        console.warn(
+          `[Socket.IO] Cliente ${socket.id} tentou entrar em um leilão com ID inválido: ${vehicleId}`
+        );
+        return;
+      }
+
+      socket.join(`auction-${numericVehicleId}`);
+      console.log(`[Socket.IO] Cliente ${socket.id} entrou no leilão ${numericVehicleId}`);
 
       // Enviar histórico de lances para o cliente
-      let bids = activeBids.get(vehicleId);
+      let bids = activeBids.get(numericVehicleId);
 
       if (!bids) {
-        const persisted = await getBidsByVehicle(vehicleId, 100);
+        const persisted = await getBidsByVehicle(numericVehicleId, 100);
         bids = persisted.map((bid) => ({
           userId: bid.userId,
           userName: bid.userName || bid.userEmail || `Usuário #${bid.userId}`,
           amount: bid.amount,
           timestamp: bid.createdAt,
         }));
-        activeBids.set(vehicleId, bids);
+        activeBids.set(numericVehicleId, bids);
       }
 
       socket.emit("bid-history", bids);
@@ -133,13 +147,25 @@ export function setupSocketIO(httpServer: HTTPServer) {
 
     // Sair de uma sala de leilão
     socket.on("leave-auction", (vehicleId: number) => {
-      socket.leave(`auction-${vehicleId}`);
-      console.log(`[Socket.IO] Cliente ${socket.id} saiu do leilão ${vehicleId}`);
+      const numericVehicleId = Number(vehicleId);
+
+      if (!Number.isInteger(numericVehicleId) || numericVehicleId <= 0) {
+        return;
+      }
+
+      socket.leave(`auction-${numericVehicleId}`);
+      console.log(`[Socket.IO] Cliente ${socket.id} saiu do leilão ${numericVehicleId}`);
     });
 
     // Receber novo lance
-    socket.on("place-bid", async (data: { vehicleId: number; amount: number }) => {
+    socket.on("place-bid", async (data: PlaceBidPayload) => {
       const { vehicleId, amount } = data;
+
+      const numericVehicleId = Number(vehicleId);
+      if (!Number.isInteger(numericVehicleId) || numericVehicleId <= 0) {
+        socket.emit("bid-error", { message: "Selecione um leilão válido para enviar lances" });
+        return;
+      }
 
       const authenticatedUser = await resolveAuthenticatedUser(socket);
       if (!authenticatedUser) {
@@ -151,11 +177,11 @@ export function setupSocketIO(httpServer: HTTPServer) {
       const displayName = authenticatedUser.name || authenticatedUser.email || `Usuário #${numericUserId}`;
 
       // Validar lance (deve ser maior que o lance atual, sem restrição de incremento mínimo)
-      let currentBids = activeBids.get(vehicleId) || [];
+      let currentBids = activeBids.get(numericVehicleId) || [];
       let highestBid = 0;
 
       if (currentBids.length === 0) {
-        const persisted = await getBidsByVehicle(vehicleId, 100);
+        const persisted = await getBidsByVehicle(numericVehicleId, 100);
         if (persisted.length > 0) {
           currentBids = persisted.map((bid) => ({
             userId: bid.userId,
@@ -163,7 +189,7 @@ export function setupSocketIO(httpServer: HTTPServer) {
             amount: bid.amount,
             timestamp: bid.createdAt,
           }));
-          activeBids.set(vehicleId, currentBids);
+          activeBids.set(numericVehicleId, currentBids);
         }
       }
 
@@ -171,7 +197,7 @@ export function setupSocketIO(httpServer: HTTPServer) {
         highestBid = Math.max(...currentBids.map(b => b.amount));
       } else {
         // Se não houver lances, buscar o currentBid do veículo
-        const vehicle = await getVehicleById(vehicleId);
+        const vehicle = await getVehicleById(numericVehicleId);
         if (vehicle) {
           highestBid = vehicle.currentBid;
         }
@@ -197,15 +223,15 @@ export function setupSocketIO(httpServer: HTTPServer) {
         timestamp: new Date()
       };
 
-      if (!activeBids.has(vehicleId)) {
-        activeBids.set(vehicleId, []);
+      if (!activeBids.has(numericVehicleId)) {
+        activeBids.set(numericVehicleId, []);
       }
-      activeBids.get(vehicleId)!.push(newBid);
+      activeBids.get(numericVehicleId)!.push(newBid);
 
       try {
         await createBidRecord({
           userId: numericUserId,
-          vehicleId,
+          vehicleId: numericVehicleId,
           amount,
         });
       } catch (error) {
@@ -213,19 +239,19 @@ export function setupSocketIO(httpServer: HTTPServer) {
       }
 
       try {
-        await updateVehicle(vehicleId, { currentBid: amount });
+        await updateVehicle(numericVehicleId, { currentBid: amount });
       } catch (error) {
         console.error("[Socket.IO] Failed to update vehicle bid:", error);
       }
 
       // Notificar todos os usuários na sala
-      io.to(`auction-${vehicleId}`).emit("new-bid", {
-        vehicleId,
+      io.to(`auction-${numericVehicleId}`).emit("new-bid", {
+        vehicleId: numericVehicleId,
         bid: newBid,
-        totalBids: activeBids.get(vehicleId)!.length
+        totalBids: activeBids.get(numericVehicleId)!.length
       });
 
-      console.log(`[Socket.IO] Novo lance: R$ ${amount} no veículo ${vehicleId} por ${newBid.userName}`);
+      console.log(`[Socket.IO] Novo lance: R$ ${amount} no veículo ${numericVehicleId} por ${newBid.userName}`);
     });
 
     // Desconexão
