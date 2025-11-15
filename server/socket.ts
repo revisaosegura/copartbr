@@ -1,6 +1,14 @@
 import { Server } from "socket.io";
 import type { Server as HTTPServer } from "http";
+import type { User } from "../drizzle/schema";
 import { createBidRecord, getBidsByVehicle, getVehicleById, updateVehicle } from "./db";
+import { sdk } from "./_core/sdk";
+
+declare module "socket.io" {
+  interface SocketData {
+    user?: User;
+  }
+}
 
 export function setupSocketIO(httpServer: HTTPServer) {
   const io = new Server(httpServer, {
@@ -12,6 +20,22 @@ export function setupSocketIO(httpServer: HTTPServer) {
 
   // Armazenar lances ativos em memória
   const activeBids = new Map<number, { userId: number; userName: string; amount: number; timestamp: Date }[]>();
+
+  io.use(async (socket, next) => {
+    try {
+      const user = await sdk.authenticateFromCookieHeader(
+        socket.request.headers?.cookie
+      );
+      socket.data.user = user;
+    } catch (error) {
+      console.warn(
+        `[Socket.IO] Failed to authenticate socket ${socket.id}:`,
+        error
+      );
+    }
+
+    next();
+  });
 
   io.on("connection", (socket) => {
     console.log(`[Socket.IO] Cliente conectado: ${socket.id}`);
@@ -45,12 +69,12 @@ export function setupSocketIO(httpServer: HTTPServer) {
     });
 
     // Receber novo lance
-    socket.on("place-bid", async (data: { vehicleId: number; userId: number; amount: number; userName?: string }) => {
-      const { vehicleId, userId, amount, userName } = data;
+    socket.on("place-bid", async (data: { vehicleId: number; userId?: number; amount: number; userName?: string }) => {
+      const { vehicleId, amount } = data;
+      const authenticatedUser = socket.data.user;
 
-      const numericUserId = Number(userId);
-      if (!Number.isFinite(numericUserId)) {
-        socket.emit("bid-error", { message: "Não foi possível identificar o usuário do lance" });
+      if (!authenticatedUser) {
+        socket.emit("bid-error", { message: "Faça login para enviar um lance" });
         return;
       }
 
@@ -94,9 +118,13 @@ export function setupSocketIO(httpServer: HTTPServer) {
       }
 
       // Adicionar lance
+      const displayName = authenticatedUser.name
+        || authenticatedUser.email
+        || `Usuário #${authenticatedUser.id}`;
+
       const newBid = {
-        userId: numericUserId,
-        userName: userName || `Usuário #${numericUserId}`,
+        userId: authenticatedUser.id,
+        userName: displayName,
         amount,
         timestamp: new Date()
       };
@@ -108,7 +136,7 @@ export function setupSocketIO(httpServer: HTTPServer) {
 
       try {
         await createBidRecord({
-          userId: numericUserId,
+          userId: authenticatedUser.id,
           vehicleId,
           amount,
         });
