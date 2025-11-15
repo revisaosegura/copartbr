@@ -4,12 +4,14 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { io, Socket } from "socket.io-client";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { getLoginUrl } from "@/const";
 
 interface Bid {
-  userId: string;
-  userName: string;
+  userId: number;
+  userName?: string;
   amount: number;
-  timestamp: Date;
+  timestamp: string | Date;
 }
 
 interface BiddingPanelProps {
@@ -24,6 +26,7 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
   const [bids, setBids] = useState<Bid[]>([]);
   const [highestBid, setHighestBid] = useState(currentBid);
   const [isConnected, setIsConnected] = useState(false);
+  const { user, isAuthenticated, loading } = useAuth();
 
   // Conectar ao Socket.IO
   useEffect(() => {
@@ -58,9 +61,10 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
     newSocket.on("new-bid", (data: { vehicleId: number; bid: Bid; totalBids: number }) => {
       setBids(prev => [...prev, data.bid]);
       setHighestBid(data.bid.amount);
-      
+
       // Notificar usuário
-      toast.success(`Novo lance: R$ ${(data.bid.amount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} por ${data.bid.userName}`);
+      const bidderName = data.bid.userName || `Usuário #${data.bid.userId}`;
+      toast.success(`Novo lance: R$ ${(data.bid.amount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })} por ${bidderName}`);
     });
 
     // Receber erro de lance
@@ -89,18 +93,23 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
     }
 
     const amountInCents = Math.round(amount * 100);
-    
+
     // Permitir qualquer valor de lance (sem restrição de mínimo)
     if (amountInCents <= highestBid) {
       toast.error(`Seu lance deve ser maior que o lance atual de R$ ${(highestBid / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
       return;
     }
 
+    if (!isAuthenticated || !user) {
+      toast.error("Faça login para participar dos lances");
+      return;
+    }
+
     // Enviar lance
     socket.emit("place-bid", {
       vehicleId,
-      userId: "user-" + Math.random().toString(36).substr(2, 9), // Temporário
-      userName: "Usuário Anônimo", // Temporário
+      userId: user.id,
+      userName: user.name || user.email || `Usuário #${user.id}`,
       amount: amountInCents
     });
 
@@ -108,6 +117,7 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
   };
 
   const suggestedBid = highestBid + minBidIncrement;
+  const canBid = isConnected && isAuthenticated && !loading;
 
   return (
     <Card>
@@ -147,11 +157,12 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
               value={bidAmount}
               onChange={(e) => setBidAmount(e.target.value)}
               className="flex-1"
+              disabled={!canBid}
             />
-            <Button 
+            <Button
               onClick={handlePlaceBid}
               className="bg-[#FDB714] hover:bg-[#e5a512] text-black font-semibold"
-              disabled={!isConnected}
+              disabled={!canBid}
             >
               Dar Lance
             </Button>
@@ -160,11 +171,22 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
             variant="outline"
             onClick={() => setBidAmount((suggestedBid / 100).toFixed(2).replace(".", ","))}
             className="w-full"
-            disabled={!isConnected}
+            disabled={!canBid}
           >
             Lance Sugerido: R$ {(suggestedBid / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </Button>
         </div>
+
+        {!loading && !isAuthenticated && (
+          <div className="rounded-md border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-600">
+            Faça login para enviar seus lances.
+            <div className="mt-3 flex justify-center">
+              <Button asChild className="bg-[#003087] hover:bg-[#002366] text-white">
+                <a href={getLoginUrl()}>Ir para o login</a>
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Histórico de Lances */}
         {bids.length > 0 && (
@@ -173,7 +195,7 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
             <div className="max-h-48 overflow-y-auto space-y-2">
               {bids.slice().reverse().map((bid, index) => (
                 <div key={index} className="flex justify-between items-center text-sm p-2 bg-gray-50 rounded">
-                  <span className="font-medium">{bid.userName}</span>
+                  <span className="font-medium">{bid.userName || `Usuário #${bid.userId}`}</span>
                   <span className="text-[#003087] font-semibold">
                     R$ {(bid.amount / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                   </span>

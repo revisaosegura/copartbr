@@ -2,6 +2,9 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { UserGrowthChart } from "@/components/analytics/UserGrowthChart";
 import { MostViewedVehicles } from "@/components/analytics/MostViewedVehicles";
 import { BidStatistics } from "@/components/analytics/BidStatistics";
@@ -87,11 +90,54 @@ export default function Admin() {
   const { data: syncLogs, isLoading: logsLoading } = trpc.admin.sync.getLogs.useQuery({ limit: 10 });
   const { data: vehicles, isLoading: vehiclesLoading } = trpc.admin.vehicles.list.useQuery();
   const { data: usersData, isLoading: usersLoading } = trpc.admin.users.list.useQuery();
+  const { data: recentBids, isLoading: bidsLoading } = trpc.admin.bids.list.useQuery({ limit: 25 });
   
   // Analytics data
   const { data: userGrowth, isLoading: userGrowthLoading } = trpc.admin.analytics.userGrowth.useQuery({ days: 30 });
   const { data: mostViewed, isLoading: mostViewedLoading } = trpc.admin.analytics.mostViewedVehicles.useQuery({ limit: 10 });
   const { data: bidStats, isLoading: bidStatsLoading } = trpc.admin.analytics.bidStatistics.useQuery();
+
+  const formatCurrency = (value: number | null | undefined) =>
+    `R$ ${((value ?? 0) / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+  const formatDateTime = (value: string | Date | null | undefined) => {
+    if (!value) return "-";
+    const date = value instanceof Date ? value : new Date(value);
+    return date.toLocaleString("pt-BR", {
+      dateStyle: "short",
+      timeStyle: "short",
+    });
+  };
+
+  const getBidStatusLabel = (status: string | null | undefined) => {
+    switch (status) {
+      case "active":
+        return "Ativo";
+      case "outbid":
+        return "Superado";
+      case "won":
+        return "Vencedor";
+      case "lost":
+        return "Perdido";
+      default:
+        return status ?? "Desconhecido";
+    }
+  };
+
+  const getBidStatusClass = (status: string | null | undefined) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "won":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "outbid":
+        return "bg-amber-100 text-amber-700 border-amber-200";
+      case "lost":
+        return "bg-gray-100 text-gray-600 border-gray-200";
+      default:
+        return "bg-slate-100 text-slate-600 border-slate-200";
+    }
+  };
 
   if (loading || statsLoading) {
     return (
@@ -204,7 +250,7 @@ export default function Admin() {
                             <p className="font-semibold text-sm">{log.type}</p>
                             <p className="text-sm text-gray-600">{log.message}</p>
                             <p className="text-xs text-gray-400 mt-1">
-                              {new Date(log.createdAt).toLocaleString("pt-BR")}
+                              {formatDateTime(log.createdAt)}
                             </p>
                           </div>
                           <span
@@ -237,28 +283,45 @@ export default function Admin() {
                 {usersLoading ? (
                   <p className="text-gray-500">Carregando usuários...</p>
                 ) : usersData && usersData.length > 0 ? (
-                  <div className="space-y-3">
-                    {usersData.slice(0, 10).map((user) => (
-                      <div key={user.id} className="flex items-center justify-between border-b pb-2">
-                        <div>
-                          <p className="font-semibold text-sm">{user.name || "Nome não informado"}</p>
-                          <p className="text-xs text-gray-500">{user.email || "Email não informado"}</p>
-                        </div>
-                        <div className="text-right">
-                          <span
-                            className={`text-xs px-2 py-1 rounded ${
-                              user.role === "admin" ? "bg-red-100 text-red-800" : "bg-blue-100 text-blue-800"
-                            }`}
-                          >
-                            {user.role || "user"}
-                          </span>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {new Date(user.createdAt).toLocaleDateString("pt-BR")}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <ScrollArea className="max-h-80">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Email</TableHead>
+                          <TableHead>Função</TableHead>
+                          <TableHead className="text-right">Registrado em</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {usersData.slice(0, 12).map((user) => (
+                          <TableRow key={user.id}>
+                            <TableCell className="font-semibold text-sm">
+                              {user.name || "Nome não informado"}
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">
+                              {user.email || "—"}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={
+                                  user.role === "admin"
+                                    ? "bg-red-100 text-red-700 border-transparent"
+                                    : "bg-blue-100 text-blue-700 border-transparent"
+                                }
+                              >
+                                {user.role || "user"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right text-xs text-gray-500">
+                              {formatDateTime(user.createdAt)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
                 ) : (
                   <p className="text-gray-500">Nenhum usuário cadastrado</p>
                 )}
@@ -283,7 +346,7 @@ export default function Admin() {
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-sm text-[#003087]">
-                            R$ {(vehicle.currentBid / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                            {formatCurrency(vehicle.currentBid)}
                           </p>
                           <span
                             className={`text-xs px-2 py-1 rounded ${
@@ -297,7 +360,69 @@ export default function Admin() {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-gray-500">Nenhum veículo cadastrado</p>
+                    <p className="text-gray-500">Nenhum veículo cadastrado</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Lances Recentes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {bidsLoading ? (
+                  <p className="text-gray-500">Carregando lances...</p>
+                ) : recentBids && recentBids.length > 0 ? (
+                  <ScrollArea className="max-h-80">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Participante</TableHead>
+                          <TableHead>Veículo</TableHead>
+                          <TableHead>Valor</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead className="text-right">Data</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {recentBids.map((bid) => (
+                          <TableRow key={bid.id}>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-sm">
+                                  {bid.userName || `Usuário #${bid.userId}`}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {bid.userEmail || "—"}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-col">
+                                <span className="font-semibold text-sm">
+                                  {bid.vehicleTitle || `Veículo #${bid.vehicleId}`}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {bid.vehicleLotNumber ? `Lote: ${bid.vehicleLotNumber}` : ""}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>{formatCurrency(bid.amount)}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className={getBidStatusClass(bid.status)}>
+                                {getBidStatusLabel(bid.status)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right text-xs text-gray-500">
+                              {formatDateTime(bid.createdAt)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </ScrollArea>
+                ) : (
+                  <p className="text-gray-500">Nenhum lance registrado</p>
                 )}
               </CardContent>
             </Card>
