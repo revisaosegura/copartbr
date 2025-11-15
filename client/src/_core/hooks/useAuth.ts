@@ -41,11 +41,17 @@ export function useAuth(options?: UseAuthOptions) {
     }
   }, [logoutMutation, utils]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const serialized = JSON.stringify(meQuery.data ?? null);
+      window.localStorage.setItem("manus-runtime-user-info", serialized);
+    } catch (error) {
+      console.warn("[Auth] Falha ao persistir dados do usuário:", error);
+    }
+  }, [meQuery.data]);
+
   const state = useMemo(() => {
-    localStorage.setItem(
-      "manus-runtime-user-info",
-      JSON.stringify(meQuery.data)
-    );
     return {
       user: meQuery.data ?? null,
       loading: meQuery.isLoading || logoutMutation.isPending,
