@@ -68,6 +68,7 @@ const COPART_DEFAULT_HEADERS = {
 const COPART_BOOTSTRAP_PATHS = ['/', '/vehicleFinder', '/search/'];
 
 const SESSION_COOKIES = new Map<string, string>();
+const INCAPSULA_REQUIRED_COOKIE_PREFIXES = ['visid_incap_', 'incap_ses_', 'nlbi_'];
 
 const NUMBER_SANITIZE_REGEX = /[^0-9.,-]/g;
 const LOT_NUMBER_REGEX = /(\d{5,})/;
@@ -485,7 +486,7 @@ async function attemptIncapsulaBootstrap(html: string, origin: string, baseUrl: 
     const inlineCookies = extractDocumentCookieStatements(html);
     if (inlineCookies.length > 0) {
         applyDocumentCookieStatements(origin, inlineCookies);
-        if (SESSION_COOKIES.has(origin)) {
+        if (hasCompleteIncapsulaSession(origin)) {
             return;
         }
     }
@@ -500,7 +501,7 @@ async function attemptIncapsulaBootstrap(html: string, origin: string, baseUrl: 
     }
 
     for (const path of resourcePaths) {
-        if (SESSION_COOKIES.has(origin)) {
+        if (hasCompleteIncapsulaSession(origin)) {
             return;
         }
 
@@ -643,6 +644,16 @@ function applyDocumentCookieStatements(origin: string, statements: string[]): vo
     if (merged) {
         SESSION_COOKIES.set(origin, merged);
     }
+}
+
+function hasCompleteIncapsulaSession(origin: string): boolean {
+    const cookies = SESSION_COOKIES.get(origin);
+    if (!cookies) {
+        return false;
+    }
+
+    const names = Array.from(cookieHeaderToMap(cookies).keys());
+    return INCAPSULA_REQUIRED_COOKIE_PREFIXES.every((prefix) => names.some((name) => name.startsWith(prefix)));
 }
 
 function invalidateSession(origin: string): void {
