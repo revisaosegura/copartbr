@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import { useEffect, useMemo, useState } from "react";
 import { Printer, Mail, Heart, BarChart2, Settings, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 
@@ -38,6 +39,33 @@ export default function EncontrarVeiculo() {
   const totalPages = Math.max(1, Math.ceil(totalVehicles / resultsPerPage));
   const startIndex = totalVehicles === 0 ? 0 : (currentPage - 1) * resultsPerPage + 1;
   const endIndex = totalVehicles === 0 ? 0 : Math.min(currentPage * resultsPerPage, totalVehicles);
+
+  const formatCurrency = (value?: number | null) =>
+    value != null
+      ? new Intl.NumberFormat('pt-BR', {
+          style: 'currency',
+          currency: 'BRL',
+          minimumFractionDigits: 2,
+        }).format(value / 100)
+      : 'Consultar';
+
+  const formatMileage = (value?: number | null) =>
+    typeof value === 'number' && Number.isFinite(value)
+      ? `${Math.max(0, value).toLocaleString('pt-BR')} km`
+      : '—';
+
+  const appliedFilters: string[] = [];
+  if (selectedMakes.length > 0) {
+    appliedFilters.push(`Marcas: ${selectedMakes.join(', ')}`);
+  }
+  if (selectedYears.length > 0) {
+    appliedFilters.push(`Anos: ${selectedYears.join(', ')}`);
+  }
+  if (selectedConditions.length > 0) {
+    appliedFilters.push(`Condições: ${selectedConditions.join(', ')}`);
+  }
+
+  const appliedFiltersText = appliedFilters.length > 0 ? appliedFilters.join(' • ') : 'Nenhum filtro aplicado';
 
   useEffect(() => {
     if (currentPage > totalPages) {
@@ -200,9 +228,9 @@ export default function EncontrarVeiculo() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 mb-4">
-                  <span className="text-sm text-gray-600">Filtros aplicados:</span>
-                  <span className="text-sm">Nenhum filtro aplicado</span>
+                <div className="flex items-start gap-2 mb-4">
+                  <span className="text-sm font-semibold text-[#003087] mt-0.5">Filtros aplicados:</span>
+                  <span className="text-sm text-gray-600 leading-relaxed">{appliedFiltersText}</span>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
@@ -274,7 +302,19 @@ export default function EncontrarVeiculo() {
               ) : (
                 <div className="space-y-4">
                   {vehicles && vehicles.length > 0 ? (
-                    vehicles.map((vehicle) => (
+                    vehicles.map((vehicle) => {
+                      const auctionDateLabel =
+                        vehicle.auctionDate
+                          ? new Date(vehicle.auctionDate).toLocaleString('pt-BR', {
+                              dateStyle: 'short',
+                              timeStyle: 'short',
+                            })
+                          : 'Data não disponível';
+                      const saleStatus = vehicle.saleStatus?.trim();
+                      const condition = vehicle.condition?.trim();
+                      const description = vehicle.description?.trim();
+
+                      return (
                       <div key={vehicle.id} className="bg-white rounded shadow-md p-4 flex gap-4 hover:shadow-lg transition-shadow">
                         {/* Imagem do Veículo */}
                         <div className="w-48 h-36 flex-shrink-0">
@@ -287,6 +327,21 @@ export default function EncontrarVeiculo() {
 
                         {/* Informações do Veículo */}
                         <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {saleStatus && (
+                              <Badge className="bg-[#003087] text-white">{saleStatus}</Badge>
+                            )}
+                            {condition && (
+                              <Badge variant="outline" className="border-[#003087] text-[#003087]">
+                                {condition}
+                              </Badge>
+                            )}
+                          </div>
+
+                          {description && (
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-3">{description}</p>
+                          )}
+
                           <div className="grid grid-cols-2 md:grid-cols-6 gap-2 text-sm mb-2">
                             <div>
                               <span className="font-semibold">Lote:</span>
@@ -314,14 +369,26 @@ export default function EncontrarVeiculo() {
                             </div>
                             <div>
                               <span className="font-semibold">Leilão:</span>
-                              <p className="text-xs truncate">
-                                {vehicle.auctionDate
-                                  ? new Date(vehicle.auctionDate).toLocaleString('pt-BR', {
-                                      dateStyle: 'short',
-                                      timeStyle: 'short',
-                                    })
-                                  : 'Data não disponível'}
-                              </p>
+                              <p className="text-xs truncate">{auctionDateLabel}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs text-gray-600 mb-4">
+                            <div>
+                              <span className="font-semibold block text-[#003087]">Odometragem</span>
+                              <p>{formatMileage(vehicle.mileage)}</p>
+                            </div>
+                            <div>
+                              <span className="font-semibold block text-[#003087]">Combustível</span>
+                              <p>{vehicle.fuel || '—'}</p>
+                            </div>
+                            <div>
+                              <span className="font-semibold block text-[#003087]">Câmbio</span>
+                              <p>{vehicle.transmission || '—'}</p>
+                            </div>
+                            <div>
+                              <span className="font-semibold block text-[#003087]">Cor</span>
+                              <p>{vehicle.color || '—'}</p>
                             </div>
                           </div>
 
@@ -330,10 +397,8 @@ export default function EncontrarVeiculo() {
                               <div>
                                 <span className="text-xs text-gray-600">Lance Atual:</span>
                                 <p className="text-lg font-bold text-[#003087]">
-                                  R$ {(vehicle.currentBid / 100).toLocaleString('pt-BR', {
-                                    minimumFractionDigits: 2,
-                                  })}
-                              </p>
+                                  {formatCurrency(vehicle.currentBid)}
+                                </p>
                             </div>
                             <div>
                               <span className="text-xs text-gray-600">Data de Atualização:</span>
@@ -349,7 +414,8 @@ export default function EncontrarVeiculo() {
                           </div>
                         </div>
                       </div>
-                    ))
+                      );
+                    })
                   ) : (
                     <div className="bg-white rounded shadow-md p-12 text-center">
                       <p className="text-gray-600 text-lg">Nenhum veículo encontrado</p>

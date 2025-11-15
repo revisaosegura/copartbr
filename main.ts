@@ -1,52 +1,30 @@
-/**
- * This template is a production ready boilerplate for developing with `PlaywrightCrawler`.
- * Use this to bootstrap your projects using the most up-to-date code.
- * If you're looking for examples or want to learn more, see README.
- */
+import { Actor, log } from 'apify';
 
-// For more information, see https://docs.apify.com/sdk/js
-import { Actor } from 'apify';
-// For more information, see https://crawlee.dev
-import { PlaywrightCrawler } from 'crawlee';
-
-// this is ESM project, and as such, it requires you to specify extensions in your relative imports
-// read more about this here: https://nodejs.org/docs/latest-v18.x/api/esm.html#mandatory-file-extensions
-// note that we need to use `.js` even when inside TS files
-import { router } from './routes.js';
+import { runCopartScraper } from './copart.js';
 
 interface Input {
-    startUrls: {
-        url: string;
-        method?: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'DELETE' | 'TRACE' | 'OPTIONS' | 'CONNECT' | 'PATCH';
-        headers?: Record<string, string>;
-        userData: Record<string, unknown>;
-    }[];
-    maxRequestsPerCrawl: number;
+    startUrl: string;
+    maxItems?: number;
 }
 
-// Initialize the Apify SDK
 await Actor.init();
 
-// Structure of input is defined in input_schema.json
-const { startUrls = ['https://apify.com'], maxRequestsPerCrawl = 100 } =
-    (await Actor.getInput<Input>()) ?? ({} as Input);
+const input = (await Actor.getInput<Input>()) ?? ({} as Input);
 
-const proxyConfiguration = await Actor.createProxyConfiguration();
+if (!input.startUrl || typeof input.startUrl !== 'string') {
+    throw new Error('O campo "startUrl" é obrigatório e deve ser uma string.');
+}
 
-const crawler = new PlaywrightCrawler({
-    proxyConfiguration,
-    maxRequestsPerCrawl,
-    requestHandler: router,
-    launchContext: {
-        launchOptions: {
-            args: [
-                '--disable-gpu', // Mitigates the "crashing GPU process" issue in Docker containers
-            ],
-        },
-    },
+const trimmedUrl = input.startUrl.trim();
+if (trimmedUrl.length === 0) {
+    throw new Error('O campo "startUrl" não pode ser vazio.');
+}
+
+const collected = await runCopartScraper({
+    startUrl: trimmedUrl,
+    maxItems: input.maxItems,
 });
 
-await crawler.run(startUrls);
+log.info(`[Copart] Coleta concluída com ${collected} item(ns).`);
 
-// Exit successfully
 await Actor.exit();

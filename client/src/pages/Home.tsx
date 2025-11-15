@@ -464,13 +464,14 @@ export default function Home() {
                       <VehicleCard
                         key={vehicle.id}
                         id={String(vehicle.id)}
-                        image={vehicle.image ?? ""}
+                        image={vehicle.image}
                         title={displayTitle}
                         lotNumber={vehicle.lotNumber}
-                        currentBid={`R$ ${(vehicle.currentBid / 100).toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                        })}`}
-                        location={vehicle.location ?? ""}
+                        currentBidCents={vehicle.currentBid}
+                        location={vehicle.location}
+                        saleStatus={vehicle.saleStatus ?? undefined}
+                        auctionDate={vehicle.auctionDate ?? undefined}
+                        description={vehicle.description ?? undefined}
                       />
                     );
                   })}

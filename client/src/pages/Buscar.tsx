@@ -46,9 +46,12 @@ export default function Buscar() {
                     id={String(vehicle.id)}
                     lotNumber={vehicle.lotNumber}
                     title={vehicle.title}
-                    currentBid={`R$ ${(vehicle.currentBid / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
-                    location={vehicle.location || ''}
-                    image={vehicle.image || ''}
+                    currentBidCents={vehicle.currentBid}
+                    location={vehicle.location}
+                    image={vehicle.image}
+                    saleStatus={vehicle.saleStatus ?? undefined}
+                    auctionDate={vehicle.auctionDate ?? undefined}
+                    description={vehicle.description ?? undefined}
                   />
                 ))}
               </div>
