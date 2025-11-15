@@ -49,19 +49,31 @@ const HERO_CARDS = [
 
 const OPPORTUNITY_CARDS = [
   {
-    title: "Nos Leilões",
-    description:
-      "Escolha seu veículo em nosso catálogo, verifique a localização e veja o histórico completo. Lotes com fotos, laudos e vídeos.",
+    title: "Compre nos Leilões",
+    features: [
+      "Escolha seu veículo em um catálogo completo com fotos, laudos e vídeos detalhados.",
+      "Defina seus limites de lance com antecedência e acompanhe tudo em tempo real.",
+      "Conte com dicas exclusivas e orientações personalizadas em cada etapa.",
+      "Participe de eventos em diferentes formatos, online ou presenciais, quando quiser.",
+    ],
   },
   {
     title: "Compre na Venda Direta",
-    description:
-      "Selecionamos veículos disponíveis agora mesmo, com documentação regularizada e condições especiais para lojistas e consumidores.",
+    features: [
+      "Segurança para comprar veículos selecionados e prontos para negociação imediata.",
+      "Condições especiais e documentação regularizada para lojistas e consumidores.",
+      "Suporte especializado para avaliar propostas e negociar com confiança.",
+      "Finalize a compra com facilidade pelo recurso \"Compre Agora\".",
+    ],
   },
   {
     title: "Venda com a Copart",
-    description:
-      "Atuamos junto aos modelos credenciados em todas as etapas. Copart cuida de todo o processo, da avaliação à entrega.",
+    features: [
+      "Aumente seus resultados com uma rede de compradores em todo o Brasil.",
+      "Avaliação profissional do veículo com acompanhamento em cada etapa.",
+      "Ofertas para públicos qualificados e habilitados a fechar negócio.",
+      "Gestão completa de logística, documentação e pós-venda pela Copart.",
+    ],
   },
 ];
 
@@ -484,27 +496,65 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="bg-gradient-to-r from-[#eff4ff] via-white to-[#eff4ff] py-14">
-          <div className="container space-y-10">
-            <div className="text-center space-y-3">
-              <Badge className="mx-auto bg-[#001f5a] text-white uppercase tracking-widest px-4 py-1">
-                Experiência Copart
-              </Badge>
-              <h2 className="text-3xl md:text-4xl font-bold text-[#002366]">Um mar de oportunidades</h2>
-              <p className="text-gray-600 max-w-2xl mx-auto">
-                Mais opções, mais vantagens e toda a segurança que você procura para comprar e vender com a Copart Brasil.
+        <section className="relative overflow-hidden bg-gradient-to-br from-[#00163a] via-[#012a6b] to-[#000d2f] py-20 text-white">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute -left-40 -top-32 h-80 w-80 rounded-full bg-[#0a3fa4]/35 blur-3xl" />
+            <div className="absolute -bottom-36 -right-24 h-[26rem] w-[26rem] rounded-full bg-[#001f5a]/40 blur-3xl" />
+            <div
+              className="absolute left-8 top-10 h-48 w-48 opacity-40"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.35) 1px, transparent 0)",
+                backgroundSize: "24px 24px",
+              }}
+            />
+          </div>
+
+          <div className="container relative space-y-12">
+            <div className="space-y-4 text-center">
+              <h2 className="text-3xl font-bold text-white md:text-4xl">Um mar de oportunidades</h2>
+              <p className="mx-auto max-w-3xl text-base text-white/80 md:text-lg">
+                Mais opções, mais vantagens e <span className="font-semibold text-white">toda a segurança</span> que você procura para
+                comprar e vender.
               </p>
             </div>
 
             <div className="grid gap-6 md:grid-cols-3">
               {OPPORTUNITY_CARDS.map(card => (
-                <Card key={card.title} className="border-[#002366]/10 shadow-sm h-full">
-                  <CardContent className="p-7 space-y-4">
-                    <h3 className="text-2xl font-semibold text-[#002366]">{card.title}</h3>
-                    <p className="text-gray-600 leading-relaxed">{card.description}</p>
+                <Card
+                  key={card.title}
+                  className="group relative h-full overflow-hidden rounded-3xl border border-white/10 bg-white/5 shadow-[0_30px_60px_-40px_rgba(0,0,0,0.9)]"
+                >
+                  <span className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/10 via-white/5 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                  <CardContent className="relative flex h-full flex-col gap-8 p-10">
+                    <div className="space-y-6">
+                      <div className="flex items-center gap-3">
+                        <div className="h-1 w-12 rounded-full bg-gradient-to-r from-[#00a0e3] to-[#0071ce]" />
+                        <h3 className="text-2xl font-semibold text-white">{card.title}</h3>
+                      </div>
+                      <ul className="space-y-4">
+                        {card.features.map(feature => (
+                          <li key={feature} className="flex items-start gap-3">
+                            <span className="mt-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#00a0e3]/30 to-[#0071ce]/30 text-white">
+                              <Check className="h-3.5 w-3.5" />
+                            </span>
+                            <p className="text-sm leading-relaxed text-white/80">{feature}</p>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
+            </div>
+
+            <div className="text-center">
+              <Button
+                className="rounded-full bg-gradient-to-r from-[#00a0e3] via-[#0071ce] to-[#004b9b] px-10 py-3 text-base font-semibold text-white shadow-lg transition-all hover:translate-y-[-2px] hover:from-[#0071ce] hover:via-[#005fa3] hover:to-[#003f84]"
+                onClick={() => setLocation("/registrar")}
+              >
+                Cadastre-se Agora
+              </Button>
             </div>
           </div>
         </section>
