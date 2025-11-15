@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import VehicleCard from "@/components/VehicleCard";
@@ -5,10 +6,37 @@ import { trpc } from "@/lib/trpc";
 import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 
+const readQueryFromUrl = () => {
+  if (typeof window === "undefined") {
+    return "";
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  return searchParams.get("q") ?? "";
+};
+
 export default function Buscar() {
   const [location] = useLocation();
-  const searchParams = new URLSearchParams(location.split('?')[1]);
-  const query = searchParams.get('q') || '';
+  const [query, setQuery] = useState(readQueryFromUrl);
+
+  useEffect(() => {
+    setQuery(readQueryFromUrl());
+  }, [location]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      setQuery(readQueryFromUrl());
+    };
+
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   const { data: searchResults, isLoading } = trpc.vehicles.search.useQuery(
     { query, limit: 50 },
