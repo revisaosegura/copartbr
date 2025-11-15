@@ -122,11 +122,11 @@ export async function runCopartScraper(options: CopartScraperOptions): Promise<n
 
 function parseStartUrl(startUrl: string): CopartStartContext {
     const url = new URL(startUrl);
-    const origin = url.origin;
+    const { origin } = url;
 
     const lotMatch = url.pathname.match(/\/lot\/([^/]+)/i);
     if (lotMatch) {
-        const [_, lotSlug] = lotMatch;
+        const [, lotSlug] = lotMatch;
         const lotNumberMatch = lotSlug.match(LOT_NUMBER_REGEX);
         const lotNumber = lotNumberMatch ? lotNumberMatch[1] : lotSlug;
 
@@ -388,6 +388,13 @@ async function fetchLotEnhancements(initial: EnrichedLotData): Promise<EnrichedL
     };
 }
 
+class CopartFetchError extends Error {
+    constructor(message: string, public status?: number) {
+        super(message);
+        this.name = 'CopartFetchError';
+    }
+}
+
 async function fetchFirstSuccessful(origin: string, endpoints: string[], description: string): Promise<unknown> {
     for (const endpoint of endpoints) {
         try {
@@ -410,13 +417,6 @@ async function fetchFirstSuccessful(origin: string, endpoints: string[], descrip
     }
 
     return null;
-}
-
-class CopartFetchError extends Error {
-    constructor(message: string, public status?: number) {
-        super(message);
-        this.name = 'CopartFetchError';
-    }
 }
 
 async function prepareCopartSession(origin: string, forceRefresh = false): Promise<string | null> {
@@ -448,6 +448,14 @@ async function prepareCopartSession(origin: string, forceRefresh = false): Promi
 
             updateSessionCookies(origin, response.headers);
 
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.toLowerCase().includes('text/html')) {
+                const body = await response.text().catch(() => null);
+                if (body) {
+                    await attemptIncapsulaBootstrap(body, origin, bootstrapUrl);
+                }
+            }
+
             const stored = SESSION_COOKIES.get(origin);
             if (stored) {
                 return stored;
@@ -470,6 +478,76 @@ function updateSessionCookies(origin: string, headers: Headers): void {
     const merged = mergeCookies(SESSION_COOKIES.get(origin) ?? null, setCookies);
     if (merged) {
         SESSION_COOKIES.set(origin, merged);
+    }
+}
+
+async function attemptIncapsulaBootstrap(html: string, origin: string, baseUrl: URL): Promise<void> {
+    const inlineCookies = extractDocumentCookieStatements(html);
+    if (inlineCookies.length > 0) {
+        applyDocumentCookieStatements(origin, inlineCookies);
+        if (SESSION_COOKIES.has(origin)) {
+            return;
+        }
+    }
+
+    const resourcePaths = new Set<string>();
+    const resourceRegex = /<script[^>]+src=["']([^"']+_Incapsula_Resource[^"']*)["']/gi;
+
+    for (const match of html.matchAll(resourceRegex)) {
+        if (match[1]) {
+            resourcePaths.add(match[1]);
+        }
+    }
+
+    for (const path of resourcePaths) {
+        if (SESSION_COOKIES.has(origin)) {
+            return;
+        }
+
+        try {
+            const resourceUrl = new URL(path, baseUrl);
+            await fetchIncapsulaResource(resourceUrl, origin, baseUrl);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            log.debug(`[Copart] Falha ao processar recurso Incapsula (${path}): ${message}`);
+        }
+    }
+}
+
+async function fetchIncapsulaResource(resourceUrl: URL, origin: string, referer: URL): Promise<void> {
+    const headers: Record<string, string> = {
+        ...COPART_DEFAULT_HEADERS,
+        Accept: 'application/javascript, text/javascript;q=0.9, */*;q=0.1',
+        Referer: referer.toString(),
+        'Sec-Fetch-Mode': 'no-cors',
+        'Sec-Fetch-Site': 'same-origin',
+    };
+
+    const existing = SESSION_COOKIES.get(origin);
+    if (existing) {
+        headers.Cookie = existing;
+    }
+
+    const response = await fetch(resourceUrl, {
+        method: 'GET',
+        headers,
+    });
+
+    if (!response.ok) {
+        const text = await response.text().catch(() => null);
+        throw new Error(
+            `[Copart] ${response.status} ${response.statusText} ao obter ${resourceUrl.toString()}${text ? `: ${text}` : ''}`,
+        );
+    }
+
+    updateSessionCookies(origin, response.headers);
+
+    const script = await response.text().catch(() => null);
+    if (script) {
+        const statements = extractDocumentCookieStatements(script);
+        if (statements.length > 0) {
+            applyDocumentCookieStatements(origin, statements);
+        }
     }
 }
 
@@ -541,6 +619,30 @@ function cookieHeaderToMap(header: string): Map<string, string> {
     }
 
     return map;
+}
+
+function extractDocumentCookieStatements(source: string): string[] {
+    const results: string[] = [];
+    const regex = /document\.cookie\s*=\s*(["'])(.*?)\1/gi;
+
+    for (const match of source.matchAll(regex)) {
+        if (match[2]) {
+            results.push(match[2]);
+        }
+    }
+
+    return results;
+}
+
+function applyDocumentCookieStatements(origin: string, statements: string[]): void {
+    if (statements.length === 0) {
+        return;
+    }
+
+    const merged = mergeCookies(SESSION_COOKIES.get(origin) ?? null, statements);
+    if (merged) {
+        SESSION_COOKIES.set(origin, merged);
+    }
 }
 
 function invalidateSession(origin: string): void {
@@ -620,7 +722,7 @@ async function copartFetchJson(
 function buildDatasetItem(data: EnrichedLotData): JsonRecord {
     const candidates = gatherCandidates(data.baseLot, data.lotDetails, data.dynamicLot, data.damageDetails, data.buildSheet);
 
-    const lotNumber = data.lotNumber;
+    const { lotNumber } = data;
     const year = pickNumber(candidates, ['year', 'yr', 'modelYear']);
     const make = pickString(candidates, ['make', 'mk', 'brand']);
     const model = pickString(candidates, ['model', 'md', 'series', 'modelGroup']);
