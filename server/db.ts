@@ -397,7 +397,7 @@ export async function searchVehicles(query: string, limit: number = 10) {
           vehicle.location,
         ];
 
-        return fields.some(value => value?.toLowerCase().includes(normalizedQuery));
+        return fields.some(value => typeof value === 'string' && value.toLowerCase().includes(normalizedQuery));
       })
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
       .slice(0, limit);
