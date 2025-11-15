@@ -64,7 +64,7 @@
 - [x] Substituir todos os telefones por: +55 11 91471-9390
 - [x] Substituir todos os emails por: contato@copartbr.com.br
 - [x] Adicionar widget flutuante do WhatsApp
-- [x] Widget deve direcionar para: https://wa.me/5511914719390
+- [x] Widget deve direcionar para: http://wa.me/5511921271104
 - [x] Widget fixo no canto inferior direito
 - [x] Design atrativo e profissional do widget
 
