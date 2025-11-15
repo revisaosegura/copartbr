@@ -1,4 +1,5 @@
-import { Actor, log } from 'apify';
+import { Actor, Dataset, log } from 'apify';
+import { chromium } from 'playwright';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -423,6 +424,60 @@ async function fetchFirstSuccessful(origin: string, endpoints: string[], descrip
     return null;
 }
 
+async function prepareCopartSessionWithPlaywright(origin: string): Promise<void> {
+    log.info('[Copart] Iniciando navegador Playwright para bypass do Incapsula...');
+    
+    const browser = await chromium.launch({
+        headless: true,
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--disable-blink-features=AutomationControlled',
+        ],
+    });
+
+    try {
+        const context = await browser.newContext({
+            userAgent: COPART_DEFAULT_HEADERS['User-Agent'],
+            locale: 'pt-BR',
+            viewport: { width: 1920, height: 1080 },
+        });
+
+        const page = await context.newPage();
+
+        // Navega para uma das páginas de bootstrap
+        const targetUrl = new URL(COPART_BOOTSTRAP_PATHS[0], origin);
+        log.info(`[Copart] Navegando para ${targetUrl.toString()} com Playwright...`);
+        
+        await page.goto(targetUrl.toString(), {
+            waitUntil: 'networkidle',
+            timeout: 60000,
+        });
+
+        // Aguarda um pouco para garantir que scripts Incapsula executaram
+        await page.waitForTimeout(3000);
+
+        // Extrai cookies do navegador
+        const cookies = await context.cookies();
+        
+        if (cookies.length > 0) {
+            const cookieStrings = cookies.map(
+                (cookie) => `${cookie.name}=${cookie.value}`
+            );
+            const merged = cookieStrings.join('; ');
+            SESSION_COOKIES.set(origin, merged);
+            log.info(`[Copart] Sessão inicializada com Playwright: ${cookies.length} cookie(s) obtido(s)`);
+        } else {
+            log.warning('[Copart] Nenhum cookie obtido via Playwright');
+        }
+
+        await context.close();
+    } finally {
+        await browser.close();
+    }
+}
+
 async function prepareCopartSession(origin: string, forceRefresh = false): Promise<string | null> {
     if (forceRefresh) {
         invalidateSession(origin);
@@ -468,6 +523,15 @@ async function prepareCopartSession(origin: string, forceRefresh = false): Promi
             const message = error instanceof Error ? error.message : String(error);
             log.debug(`[Copart] Falha ao inicializar sessão (${bootstrapUrl.toString()}): ${message}`);
         }
+    }
+
+    // Se não conseguiu cookies via fetch, tenta com Playwright
+    log.info('[Copart] Tentando inicializar sessão com Playwright...');
+    try {
+        await prepareCopartSessionWithPlaywright(origin);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        log.warning(`[Copart] Falha ao inicializar sessão com Playwright: ${message}`);
     }
 
     return SESSION_COOKIES.get(origin) ?? null;

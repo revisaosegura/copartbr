@@ -8,6 +8,9 @@ echo "📦 Installing dependencies..."
 # succeeds even when overrides were updated intentionally.
 pnpm install --no-frozen-lockfile
 
+echo "🌐 Installing Playwright browsers..."
+pnpm exec playwright install --with-deps chromium
+
 echo "🏗️  Building application..."
 pnpm build
 
