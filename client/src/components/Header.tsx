@@ -12,7 +12,6 @@ export default function Header() {
   const [showLoginMenu, setShowLoginMenu] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
-  const [showServiceAlert, setShowServiceAlert] = useState(true);
   const [, setLocation] = useLocation();
   const searchRef = useRef<HTMLDivElement>(null);
   
@@ -407,23 +406,6 @@ export default function Header() {
           </ul>
         </div>
       </nav>
-      {showServiceAlert && (
-        <div className="bg-[#d35f02] text-white">
-          <div className="container flex flex-col items-center justify-between gap-2 py-2 text-xs font-medium md:flex-row md:text-sm">
-            <span className="text-center md:text-left">
-              No dia 14/11, devido ao feriado municipal, nossa unidade de Goiânia não estará em funcionamento.
-            </span>
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-full bg-white/10 p-1.5 transition hover:bg-white/20"
-              onClick={() => setShowServiceAlert(false)}
-              aria-label="Fechar aviso"
-            >
-              <X size={14} />
-            </button>
-          </div>
-        </div>
-      )}
     </header>
   );
 }
