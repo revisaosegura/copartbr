@@ -1,7 +1,30 @@
 import { eq, desc, sql, and, gte, isNotNull, inArray, asc } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users, vehicles, priceHistory, syncLogs, siteSettings, siteStats, notifications, InsertVehicle, InsertPriceHistory, InsertSyncLog, InsertSiteSetting, InsertSiteStats, InsertNotification, bids, InsertBid } from "../drizzle/schema";
-import { ENV } from './_core/env';
+import {
+  InsertUser,
+  users,
+  vehicles,
+  priceHistory,
+  syncLogs,
+  siteSettings,
+  siteStats,
+  notifications,
+  InsertVehicle,
+  InsertPriceHistory,
+  InsertSyncLog,
+  InsertSiteSetting,
+  InsertSiteStats,
+  InsertNotification,
+  bids,
+  InsertBid,
+} from "../drizzle/schema";
+import { ENV } from "./_core/env";
+import {
+  computePseudoViews,
+  getFallbackUpcomingAuctions,
+  getFallbackVehicleById,
+  getFallbackVehicles,
+} from "./fallbackVehicles";
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
@@ -92,20 +115,30 @@ export async function getUserByOpenId(openId: string) {
 // Vehicle functions
 export async function getAllVehicles() {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) {
+    const fallbackVehicles = await getFallbackVehicles();
+    return fallbackVehicles
+      .filter(vehicle => vehicle.active === 1)
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+  }
   return await db.select().from(vehicles).where(eq(vehicles.active, 1)).orderBy(desc(vehicles.createdAt));
 }
 
 export async function getVehicleById(id: number) {
   const db = await getDb();
-  if (!db) return undefined;
+  if (!db) return await getFallbackVehicleById(id);
   const result = await db.select().from(vehicles).where(eq(vehicles.id, id)).limit(1);
   return result.length > 0 ? result[0] : undefined;
 }
 
 export async function getFeaturedVehicles(limit: number = 4) {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) {
+    const fallbackVehicles = await getFallbackVehicles();
+    return fallbackVehicles
+      .filter(vehicle => vehicle.active === 1 && vehicle.featured === 1)
+      .slice(0, limit);
+  }
   return await db.select().from(vehicles)
     .where(sql`${vehicles.featured} = 1 AND ${vehicles.active} = 1`)
     .limit(limit);
@@ -297,13 +330,19 @@ export async function getStatsLast30Days() {
 // Dashboard statistics
 export async function getDashboardStats() {
   const db = await getDb();
-  if (!db) return {
-    totalVehicles: 0,
-    activeVehicles: 0,
-    featuredVehicles: 0,
-    todayViews: 0,
-    todayVisitors: 0,
-  };
+  if (!db) {
+    const fallbackVehicles = await getFallbackVehicles();
+    const activeVehicles = fallbackVehicles.filter(vehicle => vehicle.active === 1);
+    const featuredVehicles = activeVehicles.filter(vehicle => vehicle.featured === 1);
+
+    return {
+      totalVehicles: fallbackVehicles.length,
+      activeVehicles: activeVehicles.length,
+      featuredVehicles: featuredVehicles.length,
+      todayViews: 0,
+      todayVisitors: 0,
+    };
+  }
 
   const [totalVehiclesResult] = await db.select({ count: sql<number>`count(*)` })
     .from(vehicles);
@@ -339,10 +378,33 @@ export async function getSyncLogs(limit: number = 50) {
 // Search and filter functions
 export async function searchVehicles(query: string, limit: number = 10) {
   const db = await getDb();
-  if (!db) return [];
-  
+  if (!db) {
+    const normalizedQuery = query.trim().toLowerCase();
+    if (normalizedQuery.length === 0) {
+      return [];
+    }
+
+    const fallbackVehicles = await getFallbackVehicles();
+    return fallbackVehicles
+      .filter(vehicle => {
+        if (vehicle.active !== 1) return false;
+        const fields = [
+          vehicle.title,
+          vehicle.brand,
+          vehicle.model,
+          vehicle.lotNumber,
+          vehicle.description,
+          vehicle.location,
+        ];
+
+        return fields.some(value => value?.toLowerCase().includes(normalizedQuery));
+      })
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+      .slice(0, limit);
+  }
+
   const searchTerm = `%${query}%`;
-  
+
   return await db.select().from(vehicles)
     .where(sql`
       ${vehicles.active} = 1 AND (
@@ -366,7 +428,48 @@ export async function getFilteredVehicles(filters: {
 }) {
   const db = await getDb();
   if (!db) {
-    return { items: [], total: 0 };
+    const safeFilters = filters ?? {};
+    const fallbackVehicles = await getFallbackVehicles();
+    const activeVehicles = fallbackVehicles.filter(vehicle => vehicle.active === 1);
+
+    const brandSet = safeFilters.brands?.length
+      ? new Set(safeFilters.brands.map(brand => brand.toLowerCase()))
+      : null;
+    const yearSet = safeFilters.years?.length ? new Set(safeFilters.years) : null;
+    const conditionSet = safeFilters.conditions?.length
+      ? new Set(safeFilters.conditions.map(condition => condition.toLowerCase()))
+      : null;
+
+    const filteredVehicles = activeVehicles.filter(vehicle => {
+      if (brandSet && (!vehicle.brand || !brandSet.has(vehicle.brand.toLowerCase()))) {
+        return false;
+      }
+
+      if (yearSet && (!vehicle.year || !yearSet.has(vehicle.year))) {
+        return false;
+      }
+
+      if (conditionSet && (!vehicle.condition || !conditionSet.has(vehicle.condition.toLowerCase()))) {
+        return false;
+      }
+
+      return true;
+    });
+
+    const limit = safeFilters.limit ?? 20;
+    const offset = safeFilters.offset ?? 0;
+
+    const sortedVehicles = filteredVehicles.sort((a, b) => {
+      const featuredDiff = (b.featured ?? 0) - (a.featured ?? 0);
+      if (featuredDiff !== 0) {
+        return featuredDiff;
+      }
+      return b.updatedAt.getTime() - a.updatedAt.getTime();
+    });
+
+    const items = sortedVehicles.slice(offset, offset + limit);
+
+    return { items, total: filteredVehicles.length };
   }
 
   const clauses = [eq(vehicles.active, 1)];
@@ -408,7 +511,9 @@ export async function getFilteredVehicles(filters: {
 
 export async function getUpcomingAuctions(limit: number = 8) {
   const db = await getDb();
-  if (!db) return [];
+  if (!db) {
+    return await getFallbackUpcomingAuctions(limit);
+  }
 
   const now = new Date();
 
@@ -481,8 +586,11 @@ export async function getUpcomingAuctions(limit: number = 8) {
 
 export async function getVehicleCount() {
   const db = await getDb();
-  if (!db) return 0;
-  
+  if (!db) {
+    const fallbackVehicles = await getFallbackVehicles();
+    return fallbackVehicles.filter(vehicle => vehicle.active === 1).length;
+  }
+
   const [result] = await db.select({ count: sql<number>`count(*)` })
     .from(vehicles)
     .where(eq(vehicles.active, 1));
@@ -597,8 +705,15 @@ export async function getUserGrowthStats(days: number = 30) {
 export async function getMostViewedVehicles(limit: number = 10) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get most viewed vehicles: database not available");
-    return [];
+    const fallbackVehicles = await getFallbackVehicles();
+    return fallbackVehicles
+      .filter(vehicle => vehicle.active === 1)
+      .sort((a, b) => b.currentBid - a.currentBid)
+      .slice(0, limit)
+      .map((vehicle, index) => ({
+        ...vehicle,
+        views: computePseudoViews(vehicle, index),
+      }));
   }
 
   try {
