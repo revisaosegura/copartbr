@@ -27,7 +27,8 @@ Esta API em Flask serve o inventário de veículos da Copart Brasil, processando
 3.  **Execução da API (Produção):**
     ```bash
     # Recomenda-se o uso de um servidor WSGI como Gunicorn
-    gunicorn -w 4 -b 0.0.0.0:5000 app:app
+    # Defina a variável HOST_ADDRESS (ex.: export HOST_ADDRESS=seu_dominio.com)
+    gunicorn -w 4 -b "${HOST_ADDRESS:-localhost}:${PORT:-5000}" app:app
     ```
 4.  **Endpoints:**
     *   `/inventory`: Retorna o inventário completo com metadados.
