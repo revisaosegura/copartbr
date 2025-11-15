@@ -1,0 +1,6 @@
+<svg width="160" height="48" viewBox="0 0 160 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="160" height="48" rx="12" fill="white" />
+  <text x="38" y="26" font-family="'Segoe UI', Arial, sans-serif" font-size="18" font-weight="700" fill="#004fa3">BPorto</text>
+  <rect x="32" y="32" width="96" height="4" rx="2" fill="#6aa6ff" opacity="0.35" />
+  <circle cx="110" cy="18" r="6" fill="#6aa6ff" opacity="0.35" />
+</svg>

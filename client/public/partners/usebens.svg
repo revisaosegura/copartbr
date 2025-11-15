@@ -1,0 +1,6 @@
+<svg width="160" height="48" viewBox="0 0 160 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="160" height="48" rx="12" fill="white" />
+  <text x="36" y="28" font-family="'Segoe UI', Arial, sans-serif" font-size="18" font-weight="700" fill="#0f3c75">usebens</text>
+  <text x="36" y="18" font-family="'Segoe UI', Arial, sans-serif" font-size="10" fill="#64a0dc" letter-spacing="2">SEGURADORA</text>
+  <path d="M120 22l8 6-8 6" stroke="#64a0dc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

@@ -1,0 +1,7 @@
+<svg width="160" height="48" viewBox="0 0 160 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="160" height="48" rx="12" fill="white" />
+  <path d="M34 24c0-7 5.7-12.7 12.7-12.7S59.3 17 59.3 24 53.6 36.7 46.7 36.7 34 31 34 24Z" fill="#009fda" opacity="0.2" />
+  <text x="48" y="26" font-family="'Segoe UI', Arial, sans-serif" font-size="16" font-weight="700" fill="#005a7f">gente</text>
+  <text x="102" y="26" font-family="'Segoe UI', Arial, sans-serif" font-size="12" fill="#00a5d4" font-weight="600">seguradora</text>
+  <circle cx="54" cy="18" r="3" fill="#00a5d4" />
+</svg>

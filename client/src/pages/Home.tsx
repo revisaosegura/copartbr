@@ -1,15 +1,11 @@
 import { useMemo, useState } from "react";
 import { useLocation } from "wouter";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import {
-  CalendarDays,
   Check,
   ChevronRight,
   Facebook,
   Instagram,
   Linkedin,
-  MapPin,
   Twitter,
   Youtube,
 } from "lucide-react";
@@ -321,31 +317,23 @@ const SOCIAL_LINKS = [
   { label: "Twitter", icon: Twitter, href: "https://twitter.com/Copart" },
 ];
 
-const PARTNER_SLIDES = [
-  [
-    "Consórcio Embracon",
-    "Gente Seguradora",
-    "Gol Plus",
-    "Justos",
-    "Usebens",
-    "BPorto",
-  ],
-  [
-    "Allianz",
-    "Banco Toyota",
-    "CNP Seguradora",
-    "Consórcio Embracon",
-    "Gente Seguradora",
-    "Gol Plus",
-  ],
+const PARTNERS = [
+  { name: "Allianz", logo: "allianz.svg" },
+  { name: "Banco Toyota", logo: "banco-toyota.svg" },
+  { name: "CNP Seguradora", logo: "cnp-seguradora.svg" },
+  { name: "Consórcio Embracon", logo: "consorcio-embracon.svg" },
+  { name: "Gente Seguradora", logo: "gente-seguradora.svg" },
+  { name: "Gol Plus", logo: "gol-plus.svg" },
+  { name: "Justos", logo: "justos.svg" },
+  { name: "Usebens", logo: "usebens.svg" },
+  { name: "BPorto", logo: "bporto.svg" },
 ];
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const [activeInventoryTab, setActiveInventoryTab] = useState<InventoryTabKey>("popular");
 
-  const { data: auctions, isLoading: isLoadingAuctions } =
-    trpc.vehicles.upcomingAuctions.useQuery({ limit: 4 });
+  const { data: auctions } = trpc.vehicles.upcomingAuctions.useQuery({ limit: 4 });
 
   const { data: vehiclesData, isLoading: isLoadingVehicles } =
     trpc.vehicles.list.useQuery({ limit: 8 });
@@ -721,112 +709,67 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="bg-gradient-to-r from-[#022b74] via-[#01235b] to-[#031536] text-white py-14">
-          <div className="container grid gap-8 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center">
-            <div className="space-y-3">
-              <h2 className="text-3xl font-bold">Nossas Mídias Sociais</h2>
-              <p className="text-white/80">
-                Cadastre-se agora para explorar uma ampla variedade de veículos, caminhões, motos, SUVs e muito mais.
-              </p>
+        <section className="bg-white py-20">
+          <div className="container space-y-12">
+            <div className="space-y-6 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold text-[#002366]">Nossas Mídias Sociais</h2>
+              <div className="flex flex-wrap items-center justify-center gap-5">
+                {SOCIAL_LINKS.map(link => (
+                  <a
+                    key={link.label}
+                    href={link.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex h-14 w-14 items-center justify-center rounded-full border border-[#dce6ff] bg-white text-[#002366] shadow-[0_10px_30px_rgba(0,35,102,0.12)] transition-transform duration-300 hover:-translate-y-1 hover:border-white hover:bg-[#002366] hover:text-white"
+                  >
+                    <span className="sr-only">{link.label}</span>
+                    <link.icon className="h-6 w-6" />
+                  </a>
+                ))}
+              </div>
             </div>
-            <div className="flex flex-wrap items-center gap-4">
-              {SOCIAL_LINKS.map(link => (
-                <a
-                  key={link.label}
-                  href={link.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full transition"
+
+            <div className="relative overflow-hidden rounded-[32px] bg-gradient-to-r from-[#0058ff] via-[#0043e5] to-[#021e7c] px-8 py-10 text-white shadow-[0_35px_60px_rgba(1,33,120,0.35)]">
+              <div className="pointer-events-none absolute -left-12 -top-16 h-40 w-40 rounded-full bg-white/15 blur-3xl" />
+              <div className="pointer-events-none absolute -bottom-20 right-10 h-56 w-56 rounded-full bg-[#00d4ff]/20 blur-3xl" />
+              <div className="relative z-10 flex flex-col gap-6 text-center md:flex-row md:items-center md:justify-between md:text-left">
+                <p className="text-lg font-medium leading-relaxed">
+                  Cadastre-se agora para explorar uma ampla variedade de veículos, caminhões, motos, SUVs e muito mais.
+                </p>
+                <Button
+                  asChild
+                  className="rounded-full bg-[#ffbc3a] px-8 py-6 text-base font-semibold text-[#002366] shadow-[0_18px_40px_rgba(0,0,0,0.25)] transition-colors duration-300 hover:bg-[#ffb121]"
                 >
-                  <link.icon className="h-5 w-5" />
-                  <span className="text-sm font-medium">{link.label}</span>
-                </a>
-              ))}
+                  <a href="/registrar">Cadastre-se</a>
+                </Button>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="bg-white py-16">
-          <div className="container space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#002366] text-center">Nossos Parceiros</h2>
-            <div className="space-y-6">
-              {PARTNER_SLIDES.map((slide, index) => (
+        <section className="bg-white py-20">
+          <div className="container space-y-10">
+            <h2 className="text-center text-3xl md:text-4xl font-bold text-[#002366]">Nossos Parceiros</h2>
+            <p className="text-center text-base text-[#4c5c86]">
+              Trabalhamos com instituições líderes que compartilham nosso compromisso com confiança, inovação e segurança.
+            </p>
+            <div className="mx-auto grid max-w-5xl grid-cols-2 gap-x-12 gap-y-10 md:grid-cols-3 lg:grid-cols-6">
+              {PARTNERS.map(partner => (
                 <div
-                  key={index}
-                  className="flex items-center justify-center gap-6 md:gap-10 px-6 py-6 rounded-2xl bg-gray-50 border border-gray-100"
+                  key={partner.name}
+                  className="flex items-center justify-center rounded-2xl bg-white/80 p-4 shadow-[0_18px_35px_rgba(0,27,83,0.08)] ring-1 ring-[#d8e1ff]"
                 >
-                  {slide.map(partner => (
-                    <div
-                      key={partner}
-                      className="h-12 flex items-center justify-center px-6 bg-white border border-gray-200 rounded-xl shadow-sm text-sm font-semibold text-gray-600"
-                    >
-                      {partner}
-                    </div>
-                  ))}
+                  <img
+                    src={`/partners/${partner.logo}`}
+                    alt={partner.name}
+                    className="h-10 w-auto max-w-[120px] object-contain"
+                    loading="lazy"
+                  />
                 </div>
               ))}
             </div>
-          </div>
-        </section>
-
-        <section className="bg-[#f4f7fc] py-16">
-          <div className="container space-y-10">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-              <div className="space-y-2">
-                <h2 className="text-3xl md:text-4xl font-bold text-[#002366]">Agenda de leilões</h2>
-                <p className="text-gray-600">
-                  Fique por dentro das próximas oportunidades em nossos pátios e programe os seus lances com antecedência.
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                className="border-[#002366] text-[#002366] hover:bg-[#002366] hover:text-white rounded-full"
-                onClick={() => setLocation("/calendario-leiloes")}
-              >
-                Ver calendário completo
-              </Button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              {isLoadingAuctions && (
-                <p className="col-span-full text-center text-gray-500">Carregando agenda...</p>
-              )}
-              {!isLoadingAuctions && (!auctions || auctions.length === 0) && (
-                <p className="col-span-full text-center text-gray-500">Nenhum leilão programado para os próximos dias.</p>
-              )}
-              {auctions?.map(auction => (
-                <Card key={auction.id} className="border-[#002366]/10">
-                  <CardContent className="p-6 space-y-3">
-                    <div className="flex items-center gap-2 text-[#002366] font-semibold text-sm uppercase tracking-widest">
-                      <CalendarDays size={16} />
-                      {format(new Date(auction.auctionDate), "dd 'de' MMMM", { locale: ptBR })}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <MapPin size={16} />
-                      <span>{auction.location ?? "Localização não informada"}</span>
-                    </div>
-                    <p className="text-sm text-gray-600">
-                      {auction.vehicleCount} veículo{auction.vehicleCount === 1 ? "" : "s"} em estoque
-                    </p>
-                    {auction.auctionTimes.length > 0 && (
-                      <div className="flex flex-wrap gap-2 text-xs text-[#002366] font-semibold">
-                        {auction.auctionTimes.map(time => (
-                          <span key={time} className="px-3 py-1 rounded-full bg-[#002366]/10">
-                            {time}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    <Button
-                      variant="outline"
-                      className="border-[#002366] text-[#002366] hover:bg-[#002366] hover:text-white rounded-full"
-                      onClick={() => setLocation(`/leiloes/${encodeURIComponent(auction.id)}`)}
-                    >
-                      Visualizar veículos
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex justify-center">
+              <span className="h-2 w-2 rounded-full bg-[#002366]" />
             </div>
           </div>
         </section>

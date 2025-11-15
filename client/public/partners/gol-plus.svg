@@ -1,0 +1,7 @@
+<svg width="160" height="48" viewBox="0 0 160 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="160" height="48" rx="12" fill="white" />
+  <text x="36" y="27" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="700" fill="#f47b20">gol</text>
+  <text x="86" y="27" font-family="'Segoe UI', Arial, sans-serif" font-size="20" font-weight="700" fill="#00a4b4">plus</text>
+  <circle cx="70" cy="16" r="4" fill="#f47b20" opacity="0.3" />
+  <circle cx="108" cy="32" r="5" fill="#00a4b4" opacity="0.2" />
+</svg>
