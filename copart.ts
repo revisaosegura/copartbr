@@ -65,6 +65,10 @@ const COPART_DEFAULT_HEADERS = {
     'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
 };
 
+const COPART_BOOTSTRAP_PATHS = ['/', '/vehicleFinder', '/search/'];
+
+const SESSION_COOKIES = new Map<string, string>();
+
 const NUMBER_SANITIZE_REGEX = /[^0-9.,-]/g;
 const LOT_NUMBER_REGEX = /(\d{5,})/;
 
@@ -415,6 +419,134 @@ class CopartFetchError extends Error {
     }
 }
 
+async function prepareCopartSession(origin: string, forceRefresh = false): Promise<string | null> {
+    if (forceRefresh) {
+        invalidateSession(origin);
+    }
+
+    const existing = SESSION_COOKIES.get(origin);
+    if (existing) {
+        return existing;
+    }
+
+    for (const path of COPART_BOOTSTRAP_PATHS) {
+        const bootstrapUrl = new URL(path, origin);
+        try {
+            const headers: Record<string, string> = {
+                ...COPART_DEFAULT_HEADERS,
+                Accept:
+                    'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Sec-Fetch-Mode': 'navigate',
+                'Sec-Fetch-Site': 'none',
+                'Sec-Fetch-Dest': 'document',
+            };
+
+            const response = await fetch(bootstrapUrl, {
+                method: 'GET',
+                headers,
+            });
+
+            updateSessionCookies(origin, response.headers);
+
+            const stored = SESSION_COOKIES.get(origin);
+            if (stored) {
+                return stored;
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            log.debug(`[Copart] Falha ao inicializar sessão (${bootstrapUrl.toString()}): ${message}`);
+        }
+    }
+
+    return SESSION_COOKIES.get(origin) ?? null;
+}
+
+function updateSessionCookies(origin: string, headers: Headers): void {
+    const setCookies = extractSetCookies(headers);
+    if (setCookies.length === 0) {
+        return;
+    }
+
+    const merged = mergeCookies(SESSION_COOKIES.get(origin) ?? null, setCookies);
+    if (merged) {
+        SESSION_COOKIES.set(origin, merged);
+    }
+}
+
+function extractSetCookies(headers: Headers): string[] {
+    const headerWithGet = (headers as unknown as { getSetCookie?: () => string[] }).getSetCookie?.();
+    if (headerWithGet && headerWithGet.length > 0) {
+        return headerWithGet;
+    }
+
+    const raw = (headers as unknown as { raw?: () => Record<string, string[]> }).raw?.();
+    if (raw && Array.isArray(raw['set-cookie'])) {
+        return raw['set-cookie'];
+    }
+
+    const single = headers.get('set-cookie');
+    return single ? [single] : [];
+}
+
+function mergeCookies(existing: string | null, setCookies: string[]): string | null {
+    const map = cookieHeaderToMap(existing ?? '');
+    let updated = false;
+
+    for (const cookie of setCookies) {
+        const pair = cookie.split(';', 1)[0]?.trim();
+        if (!pair) continue;
+
+        const separatorIndex = pair.indexOf('=');
+        if (separatorIndex === -1) continue;
+
+        const name = pair.slice(0, separatorIndex).trim();
+        const value = pair.slice(separatorIndex + 1).trim();
+        if (!name) continue;
+
+        map.set(name, value);
+        updated = true;
+    }
+
+    if (!updated && existing) {
+        return existing;
+    }
+
+    if (map.size === 0) {
+        return null;
+    }
+
+    return Array.from(map.entries())
+        .map(([name, value]) => `${name}=${value}`)
+        .join('; ');
+}
+
+function cookieHeaderToMap(header: string): Map<string, string> {
+    const map = new Map<string, string>();
+    if (!header) {
+        return map;
+    }
+
+    for (const segment of header.split(';')) {
+        const trimmed = segment.trim();
+        if (!trimmed) continue;
+
+        const separatorIndex = trimmed.indexOf('=');
+        if (separatorIndex === -1) continue;
+
+        const name = trimmed.slice(0, separatorIndex).trim();
+        const value = trimmed.slice(separatorIndex + 1).trim();
+        if (!name) continue;
+
+        map.set(name, value);
+    }
+
+    return map;
+}
+
+function invalidateSession(origin: string): void {
+    SESSION_COOKIES.delete(origin);
+}
+
 async function copartFetchJson(
     url: URL,
     options: {
@@ -424,42 +556,65 @@ async function copartFetchJson(
         allowError?: boolean;
     },
 ): Promise<unknown> {
-    const headers: Record<string, string> = {
-        ...COPART_DEFAULT_HEADERS,
-        Origin: options.origin,
-        Referer: `${options.origin}/`,
-    };
+    for (let attempt = 0; attempt < 2; attempt++) {
+        const headers: Record<string, string> = {
+            ...COPART_DEFAULT_HEADERS,
+            Origin: options.origin,
+            Referer: `${options.origin}/`,
+        };
 
-    if (options.method !== 'GET') {
-        headers['Content-Type'] = 'application/json';
-    }
-
-    const response = await fetch(url, {
-        method: options.method,
-        headers,
-        body: options.body ? JSON.stringify(options.body) : undefined,
-    });
-
-    if (!response.ok) {
-        const text = await response.text();
-        const message = `[Copart] ${response.status} ${response.statusText} em ${url.toString()}${text ? `: ${text}` : ''}`;
-        if (options.allowError) {
-            throw new CopartFetchError(message, response.status);
+        if (options.method !== 'GET') {
+            headers['Content-Type'] = 'application/json';
         }
-        throw new Error(message);
+
+        const cookieHeader = await prepareCopartSession(options.origin, attempt > 0);
+        if (cookieHeader) {
+            headers.Cookie = cookieHeader;
+        }
+
+        const response = await fetch(url, {
+            method: options.method,
+            headers,
+            body: options.body ? JSON.stringify(options.body) : undefined,
+        });
+
+        updateSessionCookies(options.origin, response.headers);
+
+        if (!response.ok) {
+            if (attempt === 0 && (response.status === 401 || response.status === 403)) {
+                invalidateSession(options.origin);
+                continue;
+            }
+
+            const text = await response.text();
+            const message = `[Copart] ${response.status} ${response.statusText} em ${url.toString()}${text ? `: ${text}` : ''}`;
+            if (options.allowError) {
+                throw new CopartFetchError(message, response.status);
+            }
+            throw new Error(message);
+        }
+
+        if (response.status === 204) {
+            return null;
+        }
+
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.toLowerCase().includes('application/json')) {
+            if (attempt === 0) {
+                invalidateSession(options.origin);
+                // Consume body to avoid leaking the stream before retrying.
+                await response.text();
+                continue;
+            }
+
+            const text = await response.text();
+            throw new Error(`[Copart] Resposta inesperada (não JSON) em ${url.toString()}: ${text.slice(0, 200)}`);
+        }
+
+        return response.json();
     }
 
-    if (response.status === 204) {
-        return null;
-    }
-
-    const contentType = response.headers.get('content-type');
-    if (contentType && !contentType.toLowerCase().includes('application/json')) {
-        const text = await response.text();
-        throw new Error(`[Copart] Resposta inesperada (não JSON) em ${url.toString()}: ${text.slice(0, 200)}`);
-    }
-
-    return response.json();
+    throw new Error(`[Copart] Falha ao obter dados em ${url.toString()} após múltiplas tentativas.`);
 }
 
 function buildDatasetItem(data: EnrichedLotData): JsonRecord {
