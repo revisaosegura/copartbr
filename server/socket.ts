@@ -1,8 +1,16 @@
 import { Server } from "socket.io";
 import type { Server as HTTPServer } from "http";
+import type { Socket } from "socket.io";
 import { parse as parseCookieHeader } from "cookie";
 import { COOKIE_NAME } from "@shared/const";
-import { createBidRecord, getBidsByVehicle, getUserByOpenId, getVehicleById, updateVehicle } from "./db";
+import {
+  createBidRecord,
+  getBidsByVehicle,
+  getUserByOpenId,
+  getVehicleById,
+  updateVehicle,
+  upsertUser,
+} from "./db";
 import { sdk } from "./_core/sdk";
 
 declare module "socket.io" {
@@ -12,6 +20,69 @@ declare module "socket.io" {
       name: string | null;
       email: string | null;
     };
+  }
+}
+
+type AuthenticatedSocketUser = {
+  id: number;
+  name: string | null;
+  email: string | null;
+};
+
+async function resolveAuthenticatedUser(socket: Socket): Promise<AuthenticatedSocketUser | null> {
+  if (socket.data.authenticatedUser) {
+    return socket.data.authenticatedUser;
+  }
+
+  const cookies: Record<string, string> = socket.handshake.headers.cookie
+    ? parseCookieHeader(socket.handshake.headers.cookie)
+    : {};
+  const sessionCookie = cookies[COOKIE_NAME];
+
+  if (!sessionCookie) {
+    return null;
+  }
+
+  try {
+    const session = await sdk.verifySession(sessionCookie);
+    if (!session) {
+      return null;
+    }
+
+    let user = await getUserByOpenId(session.openId);
+
+    if (!user) {
+      try {
+        const remoteUser = await sdk.getUserInfoWithJwt(sessionCookie);
+        await upsertUser({
+          openId: remoteUser.openId,
+          name: remoteUser.name || null,
+          email: remoteUser.email ?? null,
+          loginMethod: remoteUser.loginMethod ?? null,
+          lastSignedIn: new Date(),
+        });
+        user = await getUserByOpenId(session.openId);
+      } catch (syncError) {
+        console.error("[Socket.IO] Failed to sync authenticated user:", syncError);
+        return null;
+      }
+    }
+
+    if (!user) {
+      return null;
+    }
+
+    const authenticatedUser: AuthenticatedSocketUser = {
+      id: user.id,
+      name: user.name ?? null,
+      email: user.email ?? null,
+    };
+
+    socket.data.authenticatedUser = authenticatedUser;
+    return authenticatedUser;
+  } catch (error) {
+    console.error("[Socket.IO] Failed to resolve authenticated user:", error);
+    return null;
   }
 }
 
@@ -30,34 +101,9 @@ export function setupSocketIO(httpServer: HTTPServer) {
     console.log(`[Socket.IO] Cliente conectado: ${socket.id}`);
 
     // Autenticar usuário usando cookie de sessão
-    const cookies: Record<string, string> = socket.handshake.headers.cookie
-      ? parseCookieHeader(socket.handshake.headers.cookie)
-      : {};
-    const sessionCookie = cookies[COOKIE_NAME];
+    const authenticatedUser = await resolveAuthenticatedUser(socket);
 
-    if (sessionCookie) {
-      try {
-        const session = await sdk.verifySession(sessionCookie);
-        if (session) {
-          const user = await getUserByOpenId(session.openId);
-          if (user) {
-            socket.data.authenticatedUser = {
-              id: user.id,
-              name: user.name ?? null,
-              email: user.email ?? null,
-            };
-          } else {
-            console.warn(
-              `[Socket.IO] Nenhum usuário encontrado para openId ${session.openId}`
-            );
-          }
-        }
-      } catch (error) {
-        console.error("[Socket.IO] Falha ao autenticar sessão do socket:", error);
-      }
-    }
-
-    if (!socket.data.authenticatedUser) {
+    if (!authenticatedUser) {
       console.warn(
         `[Socket.IO] Cliente não autenticado conectado ao socket de lances: ${socket.id}`
       );
@@ -95,7 +141,7 @@ export function setupSocketIO(httpServer: HTTPServer) {
     socket.on("place-bid", async (data: { vehicleId: number; amount: number }) => {
       const { vehicleId, amount } = data;
 
-      const authenticatedUser = socket.data.authenticatedUser;
+      const authenticatedUser = await resolveAuthenticatedUser(socket);
       if (!authenticatedUser) {
         socket.emit("bid-error", { message: "Você precisa estar autenticado para enviar lances" });
         return;
