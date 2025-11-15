@@ -108,8 +108,6 @@ export default function BiddingPanel({ vehicleId, currentBid, minBidIncrement = 
     // Enviar lance
     socket.emit("place-bid", {
       vehicleId,
-      userId: user.id,
-      userName: user.name || user.email || `Usuário #${user.id}`,
       amount: amountInCents
     });
 
