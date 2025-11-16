@@ -2,7 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, router, protectedProcedure } from "./_core/trpc";
-import { getDashboardStats, getRecentSyncLogs, getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle, getAllSettings, upsertSetting, getUserNotifications, getUnreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead, createNotification, getAllUsers, getUserCount, getUserGrowthStats, getMostViewedVehicles, getBidStatistics, getRecentBids } from "./db";
+import { getDashboardStats, getRecentSyncLogs, getAllVehicles, getVehicleById, createVehicle, updateVehicle, deleteVehicle, getAllSettings, upsertSetting, getUserNotifications, getUnreadNotificationsCount, markNotificationAsRead, markAllNotificationsAsRead, createNotification, getAllUsers, getUserCount, getUserGrowthStats, getMostViewedVehicles, getBidStatistics, getRecentBids, getUserBids } from "./db";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { NOT_ADMIN_ERR_MSG } from "@shared/const";
@@ -269,6 +269,13 @@ export const appRouter = router({
           await upsertSetting(input);
           return { success: true };
         }),
+    }),
+  }),
+
+  // User bids
+  userBids: router({
+    myBids: protectedProcedure.query(async ({ ctx }) => {
+      return await getUserBids(ctx.user.id);
     }),
   }),
 

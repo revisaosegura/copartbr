@@ -211,6 +211,40 @@ export async function getBidsByVehicle(vehicleId: number, limit: number = 50) {
   }
 }
 
+export async function getUserBids(userId: number) {
+  const db = await getDb();
+  if (!db) {
+    console.warn("[Database] Cannot get user bids: database not available");
+    return [];
+  }
+
+  try {
+    const results = await db
+      .select({
+        id: bids.id,
+        vehicleId: bids.vehicleId,
+        amount: bids.amount,
+        status: bids.status,
+        createdAt: bids.createdAt,
+        vehicleTitle: vehicles.title,
+        vehicleLotNumber: vehicles.lotNumber,
+        vehicleImage: vehicles.image,
+        vehicleCurrentBid: vehicles.currentBid,
+        vehicleAuctionDate: vehicles.auctionDate,
+        vehicleLocation: vehicles.location,
+      })
+      .from(bids)
+      .leftJoin(vehicles, eq(bids.vehicleId, vehicles.id))
+      .where(eq(bids.userId, userId))
+      .orderBy(desc(bids.createdAt));
+
+    return results;
+  } catch (error) {
+    console.error("[Database] Error fetching user bids:", error);
+    return [];
+  }
+}
+
 export async function getRecentBids(limit: number = 50) {
   const db = await getDb();
   if (!db) {
