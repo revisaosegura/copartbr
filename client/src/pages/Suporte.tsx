@@ -23,9 +23,16 @@ export default function Suporte() {
               <Card>
                 <CardContent className="p-6 text-center">
                   <Phone className="mx-auto mb-4 text-[#FDB714]" size={48} />
-                  <h3 className="text-xl font-bold text-[#003087] mb-2">Telefone</h3>
-                  <p className="text-gray-700">+55 11 92127-1104</p>
-                  <p className="text-gray-700">(11) 92127-1104</p>
+                  <h3 className="text-xl font-bold text-[#003087] mb-2">Telefone / WhatsApp</h3>
+                  <p className="text-gray-700 font-semibold">+55 11 92127-1104</p>
+                  <a
+                    href="http://wa.me/5511921271104"
+                    className="text-[#003087] font-semibold hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    http://wa.me/5511921271104
+                  </a>
                   <p className="text-sm text-gray-600 mt-2">Seg-Sex: 8h-18h</p>
                 </CardContent>
               </Card>
@@ -40,9 +47,16 @@ export default function Suporte() {
               <Card>
                 <CardContent className="p-6 text-center">
                   <MessageCircle className="mx-auto mb-4 text-[#FDB714]" size={48} />
-                  <h3 className="text-xl font-bold text-[#003087] mb-2">Chat Online</h3>
+                  <h3 className="text-xl font-bold text-[#003087] mb-2">WhatsApp</h3>
                   <p className="text-gray-700">Atendimento imediato</p>
-                  <Button className="mt-4 bg-[#FDB714] hover:bg-[#e5a512] text-black">Iniciar Chat</Button>
+                  <a
+                    href="http://wa.me/5511921271104"
+                    className="mt-4 inline-flex items-center justify-center rounded bg-[#FDB714] px-4 py-2 font-semibold text-black hover:bg-[#e5a512]"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Falar no WhatsApp
+                  </a>
                 </CardContent>
               </Card>
             </div>
