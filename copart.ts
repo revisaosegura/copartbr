@@ -400,6 +400,13 @@ class CopartFetchError extends Error {
     }
 }
 
+class CopartNonJsonResponseError extends Error {
+    constructor(public url: string, public snippet: string) {
+        super(`[Copart] Resposta inesperada (não JSON) em ${url}: ${snippet}`);
+        this.name = 'CopartNonJsonResponseError';
+    }
+}
+
 async function fetchFirstSuccessful(origin: string, endpoints: string[], description: string): Promise<unknown> {
     for (const endpoint of endpoints) {
         try {
@@ -726,65 +733,174 @@ async function copartFetchJson(
         allowError?: boolean;
     },
 ): Promise<unknown> {
+    let lastError: unknown = null;
+
     for (let attempt = 0; attempt < 2; attempt++) {
-        const headers: Record<string, string> = {
-            ...COPART_DEFAULT_HEADERS,
-            Origin: options.origin,
-            Referer: `${options.origin}/`,
-        };
+        try {
+            const headers: Record<string, string> = {
+                ...COPART_DEFAULT_HEADERS,
+                Origin: options.origin,
+                Referer: `${options.origin}/`,
+            };
 
-        if (options.method !== 'GET') {
-            headers['Content-Type'] = 'application/json';
-        }
-
-        const cookieHeader = await prepareCopartSession(options.origin, attempt > 0);
-        if (cookieHeader) {
-            headers.Cookie = cookieHeader;
-        }
-
-        const response = await fetch(url, {
-            method: options.method,
-            headers,
-            body: options.body ? JSON.stringify(options.body) : undefined,
-        });
-
-        updateSessionCookies(options.origin, response.headers);
-
-        if (!response.ok) {
-            if (attempt === 0 && (response.status === 401 || response.status === 403)) {
-                invalidateSession(options.origin);
-                continue;
+            if (options.method !== 'GET') {
+                headers['Content-Type'] = 'application/json';
             }
 
-            const text = await response.text();
-            const message = `[Copart] ${response.status} ${response.statusText} em ${url.toString()}${text ? `: ${text}` : ''}`;
-            if (options.allowError) {
-                throw new CopartFetchError(message, response.status);
-            }
-            throw new Error(message);
-        }
-
-        if (response.status === 204) {
-            return null;
-        }
-
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.toLowerCase().includes('application/json')) {
-            if (attempt === 0) {
-                invalidateSession(options.origin);
-                // Consume body to avoid leaking the stream before retrying.
-                await response.text();
-                continue;
+            const cookieHeader = await prepareCopartSession(options.origin, attempt > 0);
+            if (cookieHeader) {
+                headers.Cookie = cookieHeader;
             }
 
-            const text = await response.text();
-            throw new Error(`[Copart] Resposta inesperada (não JSON) em ${url.toString()}: ${text.slice(0, 200)}`);
-        }
+            const response = await fetch(url, {
+                method: options.method,
+                headers,
+                body: options.body ? JSON.stringify(options.body) : undefined,
+            });
 
-        return response.json();
+            updateSessionCookies(options.origin, response.headers);
+
+            if (!response.ok) {
+                if (attempt === 0 && (response.status === 401 || response.status === 403)) {
+                    invalidateSession(options.origin);
+                    continue;
+                }
+
+                const text = await response.text();
+                const message = `[Copart] ${response.status} ${response.statusText} em ${url.toString()}${
+                    text ? `: ${text}` : ''
+                }`;
+                if (options.allowError) {
+                    throw new CopartFetchError(message, response.status);
+                }
+                throw new Error(message);
+            }
+
+            if (response.status === 204) {
+                return null;
+            }
+
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.toLowerCase().includes('application/json')) {
+                if (attempt === 0) {
+                    invalidateSession(options.origin);
+                    // Consume body to avoid leaking the stream before retrying.
+                    await response.text();
+                    continue;
+                }
+
+                const text = await response.text();
+                throw new CopartNonJsonResponseError(url.toString(), text.slice(0, 200));
+            }
+
+            return response.json();
+        } catch (error) {
+            lastError = error;
+            if (error instanceof CopartNonJsonResponseError) {
+                break;
+            }
+        }
+    }
+
+    if (lastError instanceof CopartNonJsonResponseError) {
+        log.warning(`[Copart] Conteúdo inesperado em ${url.toString()}, tentando fallback com Playwright...`);
+        try {
+            return await fetchJsonWithPlaywright(url, options);
+        } catch (playwrightError) {
+            throw playwrightError;
+        }
+    }
+
+    if (lastError) {
+        throw lastError;
     }
 
     throw new Error(`[Copart] Falha ao obter dados em ${url.toString()} após múltiplas tentativas.`);
+}
+
+async function fetchJsonWithPlaywright(
+    url: URL,
+    options: {
+        method: 'GET' | 'POST';
+        origin: string;
+        body?: JsonRecord;
+        allowError?: boolean;
+    },
+): Promise<unknown> {
+    log.info(`[Copart] Executando requisição via Playwright (${options.method} ${url.pathname})`);
+
+    const browser = await chromium.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled'],
+    });
+
+    try {
+        const context = await browser.newContext({
+            userAgent: COPART_DEFAULT_HEADERS['User-Agent'],
+            locale: 'pt-BR',
+            viewport: { width: 1920, height: 1080 },
+        });
+
+        const page = await context.newPage();
+        await page.goto(new URL('/', options.origin).toString(), { waitUntil: 'domcontentloaded', timeout: 60000 });
+        await page.waitForTimeout(2000);
+
+        const payload = options.body ?? null;
+
+        const result = await page.evaluate(
+            async ({ requestUrl, method, body }) => {
+                const headers: Record<string, string> = {
+                    Accept: 'application/json, text/plain, */*',
+                    'X-Requested-With': 'XMLHttpRequest',
+                };
+
+                if (method !== 'GET') {
+                    headers['Content-Type'] = 'application/json';
+                }
+
+                const response = await fetch(requestUrl, {
+                    method,
+                    headers,
+                    body: method === 'GET' ? undefined : JSON.stringify(body ?? {}),
+                    credentials: 'include',
+                });
+
+                const contentType = response.headers.get('content-type') ?? '';
+
+                if (!response.ok) {
+                    const text = await response.text();
+                    throw new Error(
+                        `[Copart] ${response.status} ${response.statusText} em ${requestUrl}${text ? `: ${text.slice(0, 200)}` : ''}`,
+                    );
+                }
+
+                if (!contentType.toLowerCase().includes('application/json')) {
+                    const text = await response.text();
+                    throw new Error(`[Copart] Resposta inesperada (não JSON) em ${requestUrl}: ${text.slice(0, 200)}`);
+                }
+
+                return response.json();
+            },
+            { requestUrl: url.toString(), method: options.method, body: payload },
+        );
+
+        const cookies = await context.cookies();
+        if (cookies.length > 0) {
+            const cookieHeader = cookies.map((cookie) => `${cookie.name}=${cookie.value}`).join('; ');
+            SESSION_COOKIES.set(options.origin, cookieHeader);
+        }
+
+        await context.close();
+
+        return result;
+    } catch (error) {
+        if (options.allowError && error instanceof Error) {
+            throw new CopartFetchError(error.message);
+        }
+        throw error;
+    } finally {
+        await browser.close();
+    }
 }
 
 function buildDatasetItem(data: EnrichedLotData): JsonRecord {
