@@ -31,7 +31,15 @@ export default function PrecisaAjuda() {
             <div className="bg-white p-6 rounded-lg shadow-md text-center">
               <MessageCircle className="text-[#FDB714] mx-auto mb-4" size={48} />
               <h3 className="text-xl font-semibold text-[#003087] mb-2">WhatsApp</h3>
-              <p className="text-gray-700">+55 11 92127-1104</p>
+              <a
+                href="http://wa.me/5511921271104"
+                className="text-[#003087] font-semibold hover:underline"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                http://wa.me/5511921271104
+              </a>
+              <p className="text-gray-700 mt-1">+55 11 92127-1104</p>
               <p className="text-sm text-gray-600 mt-2">Atendimento rápido</p>
             </div>
           </div>
