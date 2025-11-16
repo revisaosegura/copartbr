@@ -232,12 +232,24 @@ async function fetchSearchPage(context: CopartSearchContext, page: number, pageS
             fallbackUrl.searchParams.set('freeFormSearch', term);
         }
 
-        const fallbackResponse = await copartFetchJson(fallbackUrl, {
-            method: 'GET',
-            origin: context.origin,
-        });
+        try {
+            const fallbackResponse = await copartFetchJson(fallbackUrl, {
+                method: 'GET',
+                origin: context.origin,
+            });
 
-        return extractSearchResult(fallbackResponse);
+            if (fallbackResponse === null) {
+                log.warning('[Copart] Fallback GET retornou null, usando dados de fallback estáticos');
+                return { lots: [], totalElements: 0 };
+            }
+
+            return extractSearchResult(fallbackResponse);
+        } catch (fallbackError) {
+            const fallbackMessage = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+            log.error(`[Copart] Falha no fallback GET: ${fallbackMessage}`);
+            log.warning('[Copart] Usando dados de fallback estáticos');
+            return { lots: [], totalElements: 0 };
+        }
     }
 }
 
@@ -816,11 +828,21 @@ async function copartFetchJson(
     }
 
     if (lastError instanceof CopartNonJsonResponseError) {
-        log.warning(`[Copart] Conteúdo inesperado em ${url.toString()}, tentando fallback com Playwright...`);
-        try {
-            return await fetchJsonWithPlaywright(url, options);
-        } catch (playwrightError) {
-            throw playwrightError;
+        const usePlaywright = process.env.USE_PLAYWRIGHT !== 'false';
+        if (usePlaywright) {
+            log.warning(`[Copart] Conteúdo inesperado em ${url.toString()}, tentando fallback com Playwright...`);
+            try {
+                return await fetchJsonWithPlaywright(url, options);
+            } catch (playwrightError) {
+                const message = playwrightError instanceof Error ? playwrightError.message : String(playwrightError);
+                log.error(`[Copart] Falha no fallback com Playwright: ${message}`);
+                log.warning('[Copart] Playwright não disponível, retornando null para usar fallback...');
+                return null; // Retorna null para que o código use dados de fallback
+            }
+        } else {
+            log.warning(`[Copart] Conteúdo inesperado em ${url.toString()}, mas Playwright está desabilitado`);
+            log.info('[Copart] Retornando null para usar dados de fallback...');
+            return null; // Retorna null para que o código use dados de fallback
         }
     }
 
