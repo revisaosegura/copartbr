@@ -434,15 +434,22 @@ async function fetchFirstSuccessful(origin: string, endpoints: string[], descrip
 async function prepareCopartSessionWithPlaywright(origin: string): Promise<void> {
     log.info('[Copart] Iniciando navegador Playwright para bypass do Incapsula...');
     
-    const browser = await chromium.launch({
-        headless: true,
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--disable-blink-features=AutomationControlled',
-        ],
-    });
+    let browser;
+    try {
+        browser = await chromium.launch({
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-blink-features=AutomationControlled',
+            ],
+        });
+    } catch (launchError) {
+        const message = launchError instanceof Error ? launchError.message : String(launchError);
+        log.error(`[Copart] Falha ao iniciar Playwright: ${message}`);
+        throw new Error(`Playwright launch failed: ${message}`);
+    }
 
     try {
         const context = await browser.newContext({
@@ -532,13 +539,19 @@ async function prepareCopartSession(origin: string, forceRefresh = false): Promi
         }
     }
 
-    // Se não conseguiu cookies via fetch, tenta com Playwright
-    log.info('[Copart] Tentando inicializar sessão com Playwright...');
-    try {
-        await prepareCopartSessionWithPlaywright(origin);
-    } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        log.warning(`[Copart] Falha ao inicializar sessão com Playwright: ${message}`);
+    // Se não conseguiu cookies via fetch, tenta com Playwright (se habilitado)
+    const usePlaywright = process.env.USE_PLAYWRIGHT !== 'false';
+    if (usePlaywright) {
+        log.info('[Copart] Tentando inicializar sessão com Playwright...');
+        try {
+            await prepareCopartSessionWithPlaywright(origin);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            log.warning(`[Copart] Falha ao inicializar sessão com Playwright: ${message}`);
+            log.warning('[Copart] Continuando sem Playwright...');
+        }
+    } else {
+        log.info('[Copart] Playwright desabilitado via USE_PLAYWRIGHT=false');
     }
 
     return SESSION_COOKIES.get(origin) ?? null;
